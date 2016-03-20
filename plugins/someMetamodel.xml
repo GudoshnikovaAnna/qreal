@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metamodel version="1.0.0" xmlns="http://schema.real.com/schema/">
+    <namespace>UML 2.0</namespace>
+    <diagram nodeName="ConnectionNode" name="Joystick">
+        <graphicTypes>
+            <node displayedName="Buttons" name="Buttuns">
+                <graphics>
+                    <picture sizex="126" sizey="138">
+                        <rectangle stroke="#ff000000" fill-style="none" y2="136" stroke-style="solid" x1="0" x2="124" fill="#ffffffff" stroke-width="0" y1="0"/>
+                    </picture>
+                    <labels/>
+                    <ports/>
+                </graphics>
+                <logic>
+                    <container/>
+                    <properties>
+                        <property displayedName="Quantity" name="Property" type="int">
+                            <default>1</default>
+                        </property>
+                    </properties>
+                    <explodesTo/>
+                </logic>
+            </node>
+            <node displayedName="Pads" name="Pads">
+                <graphics>
+                    <picture sizex="151" sizey="168">
+                        <rectangle stroke="#ff000000" fill-style="none" y2="166" stroke-style="solid" x1="0" x2="149" fill="#ffffffff" stroke-width="0" y1="0"/>
+                    </picture>
+                    <labels/>
+                    <ports/>
+                </graphics>
+                <logic>
+                    <container/>
+                    <properties>
+                        <property displayedName="Quantity" name="Property" type="int">
+                            <default>2</default>
+                        </property>
+                    </properties>
+                    <explodesTo/>
+                </logic>
+            </node>
+            <node displayedName="ConectionNode" name="ConnectionNode">
+                <graphics>
+                    <picture sizex="186" sizey="169">
+                        <ellipse stroke="#ff000000" fill-style="none" y2="167" stroke-style="solid" x1="0" x2="184" fill="#ffffffff" stroke-width="0" y1="0"/>
+                    </picture>
+                    <labels/>
+                    <ports/>
+                </graphics>
+                <logic>
+                    <container/>
+                    <explodesTo/>
+                </logic>
+            </node>
+        </graphicTypes>
+    </diagram>
+</metamodel>
