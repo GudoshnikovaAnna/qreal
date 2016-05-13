@@ -1,0 +1,80 @@
+<Page
+	x:Class="GamepadSemester.GamepadPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:GamepadSemester"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+	<Page.Resources>
+		<ControlTemplate x:Name="SettingsButtonTemplate" x:Key="SettingsButtonControlTemplate" TargetType="Button">
+			<Grid Name="ButtonGrid" Width="55">
+				<Image HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/settingsWheel.png"/>
+			</Grid>
+		</ControlTemplate>
+		<ControlTemplate x:Key="LeftButtonControlTemplate" TargetType="Button">
+			<Grid Name="ButtonGrid" Width="55">
+				<Image HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/d-Pad LEFT.png"/>
+			</Grid>
+		</ControlTemplate>
+		<ControlTemplate x:Key="RightButtonControlTemplate" TargetType="Button">
+			<Grid Name="ButtonGrid" Width="55">
+				<Image HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/d-Pad RIGHT.png"/>
+			</Grid>
+		</ControlTemplate>
+		<ControlTemplate x:Key="UpButtonControlTemplate" TargetType="Button">
+			<Grid Name="ButtonGrid" Width="55">
+				<Image HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/d-Pad UP.png"/>
+			</Grid>
+		</ControlTemplate>
+		<ControlTemplate x:Key="DownButtonControlTemplate" TargetType="Button">
+			<Grid Name="ButtonGrid" Width="55">
+				<Image HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/d-Pad DOWN.png"/>
+			</Grid>
+		</ControlTemplate>
+	</Page.Resources>
+
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="41*"/>
+			<ColumnDefinition Width="566*"/>
+		</Grid.ColumnDefinitions>
+		<ScrollViewer HorizontalAlignment="Left" Height="91" Margin="10,299,0,0" VerticalAlignment="Top" Width="587" VerticalScrollMode="Disabled" HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" Grid.ColumnSpan="2">
+			<StackPanel Name="ButtonsPanel" Height="74" Width="0" RenderTransformOrigin="0.5,0.5" Orientation="Horizontal" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+				<StackPanel.Resources>
+					<ControlTemplate x:Name="ButtonTemplate" x:Key="ButtonControlTemplate" TargetType="Button">
+						<Grid Name="ButtonGrid" Width="55">
+							<VisualStateManager.VisualStateGroups>
+								<VisualStateGroup x:Name="CommonStates">
+									<VisualState x:Name="Normal" />
+									<VisualState x:Name="PointerOver" />
+									<VisualState x:Name="Pressed">
+										<Storyboard>
+											<DoubleAnimation Storyboard.TargetName="buttonImage"
+												Storyboard.TargetProperty="Height"
+												To="54" Duration="0" />
+										</Storyboard>
+									</VisualState>
+									<VisualState x:Name="Disabled" />
+								</VisualStateGroup>
+								<VisualStateGroup x:Name="FocusedStates">
+									<VisualState x:Name="Unfocused" />
+									<VisualState x:Name="PointerFocused" />
+									<VisualState x:Name="Focused" />
+								</VisualStateGroup>
+							</VisualStateManager.VisualStateGroups>
+							<Image x:Name="buttonImage" HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/button.png"/>
+						</Grid>
+					</ControlTemplate>
+				</StackPanel.Resources>
+			</StackPanel>
+		</ScrollViewer>
+		<Grid x:Name="LeftStick" HorizontalAlignment="Left" Height="130" Margin="72.167,69,0,0" VerticalAlignment="Top" Width="130" Grid.Column="1">
+			<Image x:Name="dPad1" HorizontalAlignment="Left" Height="130" VerticalAlignment="Top" Width="130" Source="Assets/dPad.png" PointerPressed="dPadPressed" PointerReleased="dPadReleased"/>
+		</Grid>
+		<Button x:Name="SettingsPageButton" Content="Settings" HorizontalAlignment="Left" Margin="473.167,0,-16.333,0" VerticalAlignment="Top" Click="TurnPage" Grid.Column="1" Template="{StaticResource SettingsButtonControlTemplate}"/>
+		<TextBlock x:Name="ErrorBlock" Grid.Column="1" HorizontalAlignment="Left" Margin="261.167,24,0,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+		@@<Image x:Name="dPad2" HorizontalAlignment="Left" Height="130" VerticalAlignment="Top" Width="130" Source="Assets/dPad.png" PointerPressed="dPadPressed" Grid.Column="1" Margin="335.167,69,0,0" PointerReleased="dPadReleased"/>@@
+	</Grid>
+</Page>

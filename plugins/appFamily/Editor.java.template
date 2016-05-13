@@ -1,0 +1,530 @@
+import javax.swing.*;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.net.URL;
+
+/**
+ * Created by Anna on 12.04.2016.
+ */
+public class Editor extends JFrame {
+    JTextArea area = new JTextArea(0, 0);
+    JScrollPane scrolPane = new JScrollPane(area);
+    public JPopupMenu popmenu = new JPopupMenu();
+
+    @JMenu menu = new JMenu("Edit");@
+    @JMenuItem menuItem = new JMenuItem("copy");@
+    @JMenuItem menucut = new JMenuItem("cut");@
+    JMenuItem menuclear = new JMenuItem("clear");
+    @JMenuItem menupaste = new JMenuItem("paste");@
+
+    /*тулбар*/
+    JToolBar toolBar = new JToolBar();
+    URL imgURLNew = Editor.class.getResource("new.JPG");
+    URL imgURLOpen = Editor.class.getResource("open.JPG");
+    URL imgURLSave = Editor.class.getResource("save.JPG");
+    URL imgURLCut = Editor.class.getResource("cut.JPG");
+    URL imgURLCopy = Editor.class.getResource("copy.JPG");
+    URL imgURLPaste = Editor.class.getResource("paste.JPG");
+    JButton newFileB = new JButton(new ImageIcon(imgURLNew));
+    JButton openFileB = new JButton(new ImageIcon(imgURLOpen));
+    JButton saveFileB = new JButton(new ImageIcon(imgURLSave));
+    JButton cutFileB = new JButton(new ImageIcon(imgURLCut));
+    JButton copyFileB = new JButton(new ImageIcon(imgURLCopy));
+    JButton pasteFileB = new JButton(new ImageIcon(imgURLPaste));
+
+    /*меню бар*/
+    JMenuBar menuBar = new JMenuBar();
+    JMenu file = new JMenu("File");
+    JMenu edit = new JMenu("Edit");
+    @JMenu format = new JMenu("Format");@
+    JMenu view = new JMenu("View");
+    JMenu help = new JMenu("Help");
+
+
+    JMenuItem newfile = new JMenuItem("New", new ImageIcon(imgURLNew));
+    JMenuItem openfile = new JMenuItem("Open", new ImageIcon(imgURLOpen));
+    JMenuItem savefile = new JMenuItem("Save", new ImageIcon(imgURLSave));
+    JMenuItem saveasfile = new JMenuItem("Save As...");
+    JMenuItem exit = new JMenuItem("Exit");
+
+
+    JMenuItem undo = new JMenuItem("Undo");
+    JMenuItem redo = new JMenuItem("Redo");
+    JMenuItem copy = new JMenuItem("copy");
+    JMenuItem cut = new JMenuItem("cut");
+    JMenuItem paste = new JMenuItem("paste");
+    JMenuItem find = new JMenuItem("Find");
+    JMenuItem findnext = new JMenuItem("Find Next");
+    JMenuItem selectall = new JMenuItem("Select All");
+
+    JCheckBoxMenuItem word_format = new JCheckBoxMenuItem("Word Wrap");
+    JMenuItem font = new JMenuItem("Font");
+
+    JCheckBoxMenuItem STATUSVIEW = new JCheckBoxMenuItem("Status Bar");
+    JMenuItem about = new JMenuItem("About");
+
+    boolean opened = false;
+    int ind = 0;
+    String fileN;
+    String fileS = null;
+    StringBuffer sbufer;
+    String findString;
+
+    JPanel statusPanel = new JPanel();
+    JLabel statusLabel;
+    JPanel aboutPanel = new JPanel();
+
+    fontSelector fontS = new fontSelector();
+
+    UndoManager undoMan = new UndoManager();
+    UndoAction undoAction = new UndoAction();
+    RedoAction redoAction = new RedoAction();
+
+
+    public Editor() {
+        super("untitled");
+        this.setSize(800, 600);
+        this.getContentPane().setLayout(new BorderLayout());
+        area.setLineWrap(true);
+        this.getContentPane().add(statusPanel, BorderLayout.SOUTH);
+        area.requestFocus(true);
+        this.getContentPane().add(scrolPane, BorderLayout.CENTER);
+        area.setDragEnabled(true);
+        toolBar.setFloatable(false);
+      
+        this.getContentPane().add(toolBar, BorderLayout.NORTH);
+        MouseListener popupListener = new PopupListener();
+        area.addMouseListener(popupListener);
+
+        area.getDocument().addUndoableEditListener(new MyUndoableEditListener());
+
+        file.add(newfile);
+        @file.add(openfile);@
+        @file.add(savefile);@
+        @file.add(saveasfile);@
+        file.addSeparator();
+        file.add(exit);
+
+        @edit.add(undoAction);@
+        @edit.add(redoAction);@
+        @edit.add(cut);@
+        @edit.add(copy);@
+        @edit.add(paste);@
+        @edit.addSeparator();@
+        @edit.add(find);@
+        @edit.add(findnext);@
+        edit.addSeparator();
+        @edit.add(selectall);@
+
+        @format.add(word_format);@
+        @word_format.setSelected(true);@
+        @format.add(font);@
+        help.add(about);
+
+        view.add(STATUSVIEW);
+        STATUSVIEW.setSelected(true);
+
+        file.setMnemonic(KeyEvent.VK_F);
+        menuBar.add(file);
+        edit.setMnemonic(KeyEvent.VK_E);
+        menuBar.add(edit);
+        format.setMnemonic(KeyEvent.VK_T);
+        @menuBar.add(format);@
+        view.setMnemonic(KeyEvent.VK_V);
+        menuBar.add(view);
+        help.setMnemonic(KeyEvent.VK_H);
+        menuBar.add(help);
+
+        this.setJMenuBar(menuBar);
+
+        @popmenu.add(undoAction);@
+        @popmenu.add(redoAction);popmenu.addSeparator();@
+        @popmenu.add(menuItem);@
+        @popmenu.add(menucut);@
+        @popmenu.add(menupaste);@
+        popmenu.add(menuclear);
+
+        newFileB.setBorder(null);
+        openFileB.setBorder(null);
+        saveFileB.setBorder(null);
+        cutFileB.setBorder(null);
+        copyFileB.setBorder(null);
+        pasteFileB.setBorder(null);
+
+
+        toolBar.add(newFileB);
+        newFileB.setToolTipText("New file");
+        toolBar.addSeparator();
+        @toolBar.add(openFileB);openFileB.setToolTipText("Open file");@
+        @toolBar.add(saveFileB);saveFileB.setToolTipText("Save file");toolBar.addSeparator();@
+        @toolBar.add(cutFileB);cutFileB.setToolTipText("Cut");@
+        @toolBar.add(copyFileB);copyFileB.setToolTipText("Copy");@
+        @toolBar.add(pasteFileB);pasteFileB.setToolTipText("Paste");@
+
+        newFileB.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                opened = false;
+                if (area.getText().equals("")) {
+                    System.out.print("text is empty");
+                } else {
+                    int confirm = JOptionPane.showConfirmDialog(null,
+                            "Would you like to save?",
+                            "New File",
+                            JOptionPane.YES_NO_CANCEL_OPTION);
+
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        saveFile();
+                        area.setText(null);
+                        statusPanel.removeAll();
+                        statusPanel.validate();
+                    } else if (confirm == JOptionPane.CANCEL_OPTION) {
+                    } else if (confirm == JOptionPane.NO_OPTION) {
+                        area.setText(null);
+                        statusPanel.removeAll();
+                        statusPanel.validate();
+                    }
+                }
+            }
+        });
+
+        openFileB.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {openFile();}});
+
+        saveFileB.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {saveFile();}});
+
+        cutFileB.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {area.cut();}});
+
+        copyFileB.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {area.copy();}});
+
+        pasteFileB.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {area.paste();}});
+		
+        menuItem.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.copy();menupaste.setEnabled(true);pasteFileB.setEnabled(true);paste.setEnabled(true);}});
+
+        menucut.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.cut();menupaste.setEnabled(true);pasteFileB.setEnabled(true);paste.setEnabled(true);}});
+
+        menupaste.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.paste();}});
+
+        menuclear.addActionListener( new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                area.setText(null);
+            }
+        });
+		
+        newfile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        newfile.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                opened = false;
+                int confirm = JOptionPane.showConfirmDialog(null,
+                        "Would you like to save?",
+                        "New File",
+                        JOptionPane.YES_NO_CANCEL_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    saveFile();
+                    area.setText(null);
+                    statusPanel.removeAll();
+                    statusPanel.validate();
+                } else if (confirm == JOptionPane.CANCEL_OPTION) {
+                } else {
+                    area.setText(null);
+                    statusPanel.removeAll();
+                    statusPanel.validate();
+                }
+            }
+        });
+		
+        savefile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));savefile.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {saveFile();}});
+
+        saveasfile.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {opened = false;saveFile();}});
+
+        selectall.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));selectall.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.selectAll();}});
+
+        STATUSVIEW.addActionListener( new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                if(STATUSVIEW.isSelected())
+                    statusPanel.setVisible(true);
+                else
+                    statusPanel.setVisible(false);
+            }
+        });
+
+        openfile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));openfile.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){openFile();}});
+
+        cut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));cut.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.cut();}});
+
+        copy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));copy.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.copy();}});
+
+        paste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK));paste.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){area.paste();}});
+
+        font.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));font.addActionListener( new ActionListener(){public void actionPerformed(ActionEvent e){fontS.setVisible(true);fontS.okButton.addActionListener(new ActionListener (){public void actionPerformed(ActionEvent ae){Font selectedFont = fontS.returnFont();area.setFont(selectedFont);fontS.setVisible(false);}});fontS.cancelButton.addActionListener(new ActionListener (){public void actionPerformed(ActionEvent ae){fontS.setVisible(false);}});}});
+
+        exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+        exit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(null,
+                        "Would you like to save?",
+                        "Exit Application",
+                        JOptionPane.YES_NO_CANCEL_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    saveFile();
+                    dispose();
+                    System.exit(0);
+                } else if (confirm == JOptionPane.CANCEL_OPTION) {
+                } else {
+                    dispose();
+                    System.exit(0);
+                }
+            }
+        });
+
+        find.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {try {sbufer = new StringBuffer(area.getText());findString = JOptionPane.showInputDialog(null, "Find");ind = sbufer.indexOf(findString);area.setCaretPosition(ind);area.setSelectionStart(ind);area.setSelectionEnd(ind + findString.length());} catch (IllegalArgumentException npe) {JOptionPane.showMessageDialog(null, "String not found");} catch (NullPointerException nfe) {}}});
+
+        findnext.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {try {sbufer = new StringBuffer(area.getText());findString = JOptionPane.showInputDialog(null, "Find");ind = sbufer.indexOf(findString, area.getCaretPosition());area.setCaretPosition(ind);area.setSelectionStart(ind);area.setSelectionEnd(ind + findString.length());} catch (IllegalArgumentException npe) {JOptionPane.showMessageDialog(null, "String not found");} catch (NullPointerException nfe) {}}});
+
+        //ABOUT
+        about.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, ActionEvent.CTRL_MASK));
+        about.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                URL img = getClass().getResource("logo.jpg");
+                String imagesrc = "<img src=\"" + img + "\" width=\"323\" height=\"185\">";
+                String message = "Sample application using the simple text editor component";
+                JOptionPane.showMessageDialog(aboutPanel, "<html><center>" + imagesrc + "<br>" + message);
+            }
+        });
+
+        word_format.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {if (word_format.isSelected())area.setLineWrap(true);else area.setLineWrap(false);}});
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(null,
+                        "Would you like to save?",
+                        "Exit Application",
+                        JOptionPane.YES_NO_CANCEL_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    saveFile();
+                    dispose();
+                    System.exit(0);
+                } else if (confirm == JOptionPane.CANCEL_OPTION) {
+
+                } else {
+                    dispose();
+                    System.exit(0);
+                }
+            }
+        });
+
+
+    }
+
+    public static void main(String[] args) {
+        Editor l = new Editor();
+        l.setVisible(true);
+
+    }
+
+    public void saveFile() {
+        String line = area.getText();
+        if (opened == true) {
+            try {
+                FileWriter output = new FileWriter(fileS);
+                BufferedWriter bufout = new BufferedWriter(output);
+                bufout.write(line, 0, line.length());
+                JOptionPane.showMessageDialog(null, "Save Successful");
+                bufout.close();
+                output.close();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        } else {
+            JFileChooser fc = new JFileChooser();
+            int result = fc.showSaveDialog(new JPanel());
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                fileN = String.valueOf(fc.getSelectedFile());
+
+                try {
+                    FileWriter output = new FileWriter(fileN);
+                    BufferedWriter bufout = new BufferedWriter(output);
+                    bufout.write(line, 0, line.length());
+                    JOptionPane.showMessageDialog(null, "Save Successful");
+                    bufout.close();
+                    output.close();
+                    opened = true;
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void openFile() {
+        statusPanel.removeAll();
+        statusPanel.validate();
+        area.setText(null);
+        JFileChooser fc = new JFileChooser();
+        int result = fc.showOpenDialog(new JPanel());
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String file = String.valueOf(fc.getSelectedFile());
+            //String dirn = fc.getDirectory();
+
+            File fil = new File(file);
+            newFileB.setEnabled(false);
+
+            //START THIS THREAD WHILE READING FILE
+            Thread loader = new FileLoader(fil, area.getDocument());
+            loader.start();
+            statusPanel.removeAll();
+            statusPanel.revalidate();
+        } else {
+        }
+    }
+    class PopupListener extends MouseAdapter {
+
+        public void mousePressed(MouseEvent e) {
+
+            maybeShowPopup(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        private void maybeShowPopup(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                popmenu.show(e.getComponent(),
+                        e.getX(), e.getY());
+            }
+        }
+    }
+
+    class UndoAction extends AbstractAction {
+        public UndoAction() {
+            super("Undo");
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undoMan.undo();
+            } catch (CannotUndoException ex) {
+                System.out.println("Unable to undo: " + ex);
+                ex.printStackTrace();
+            }
+            update();
+            redoAction.update();
+        }
+
+        protected void update() {
+            if(undoMan.canUndo()) {
+                setEnabled(true);
+                putValue("Undo", undoMan.getUndoPresentationName());
+            }
+            else {
+                setEnabled(false);
+                putValue(Action.NAME, "Undo");
+            }
+        }
+    }
+
+    class RedoAction extends AbstractAction {
+        public RedoAction() {
+            super("Redo");
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undoMan.redo();
+            } catch (CannotRedoException ex) {
+                System.out.println("Unable to redo: " + ex);
+                ex.printStackTrace();
+            }
+            update();
+            undoAction.update();
+        }
+
+        protected void update() {
+            if(undoMan.canRedo()) {
+                setEnabled(true);
+                putValue("Redo", undoMan.getRedoPresentationName());
+            }
+            else {
+                setEnabled(false);
+                putValue(Action.NAME, "Redo");
+            }
+        }
+    }
+
+    public class MyUndoableEditListener implements UndoableEditListener
+    {
+        public void undoableEditHappened(UndoableEditEvent e) {
+            //Remember the edit and update the menus
+            undoMan.addEdit(e.getEdit());
+            undoAction.update();
+            redoAction.update();
+        }
+    }
+
+
+    class FileLoader extends Thread {
+
+        JLabel state;
+
+        FileLoader(File f, Document doc) {
+            setPriority(4);
+            this.f = f;
+            this.doc = doc;
+        }
+
+        public void run() {
+            try {
+                // initialize the statusbar
+                statusPanel.removeAll();
+                JProgressBar progress = new JProgressBar();
+                progress.setMinimum(0);
+                progress.setMaximum((int) f.length());
+                statusPanel.add(new JLabel("opened so far "));
+                statusPanel.add(progress);
+                statusPanel.revalidate();
+
+                // try to start reading
+                Reader in = new FileReader(f);
+                char[] buff = new char[4096];
+                int nch;
+                while ((nch = in.read(buff, 0, buff.length)) != -1) {
+                    doc.insertString(doc.getLength(), new String(buff, 0, nch), null);
+                    progress.setValue(progress.getValue() + nch);
+                }
+
+                // we are done... get rid of progressbar
+                statusPanel.removeAll();
+                statusPanel.revalidate();
+
+            } catch (IOException e) {
+                System.err.println(e.toString());
+            } catch (BadLocationException e) {
+                System.err.println(e.getMessage());
+            }
+            newFileB.setEnabled(true);
+        }
+
+        Document doc;
+        File f;
+    }
+
+}
+

@@ -1,0 +1,43 @@
+<Page
+	x:Class="GamepadSemester.SettingsPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:GamepadSemester"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+	<Grid x:Name="LayoutRoot">
+
+		<Grid.ChildrenTransitions>
+			<TransitionCollection>
+				<EntranceThemeTransition/>
+			</TransitionCollection>
+		</Grid.ChildrenTransitions>
+
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+
+		<Grid.Resources>
+			<ControlTemplate x:Name="GamepadButtonTemplate" x:Key="GamepadButtonControlTemplate" TargetType="Button">
+				<Grid Name="ButtonGrid" Width="55">
+					<Image HorizontalAlignment="Left" Height="57" VerticalAlignment="Top" Width="56" Source="Assets/joystick.png"/>
+				</Grid>
+			</ControlTemplate>
+		</Grid.Resources>
+
+		<!--Панель заголовка-->
+		<StackPanel Grid.Row="0" Margin="19,0,0,0">
+			<TextBlock Text="Gamepad" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,12,0,0"/>
+			<TextBlock Text="settings" Margin="0,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}" CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+		</StackPanel>
+		<TextBox x:Name="IPAddressBox" Header="IP address" HorizontalAlignment="Left" Margin="10,129,0,0" Grid.Row="0" TextWrapping="Wrap" VerticalAlignment="Top" PlaceholderText="Input IP address" Width="364" RequestedTheme="Dark" Grid.RowSpan="2"/>
+		<TextBox x:Name="PortBox" Header="Port" HorizontalAlignment="Left" Margin="10,65.833,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="364" PlaceholderText="Input port"/>
+		<Button x:Name="ConnectionButton" Content="Set connection" HorizontalAlignment="Left" Margin="414,17.833,0,0" Grid.Row="1" VerticalAlignment="Top" Click="ConnectionButtonClick"/>
+		<Button x:Name="GamepadPageButton" Content="Gamepad" HorizontalAlignment="Left" Margin="514,0,-16,0" VerticalAlignment="Top" Click="TurnPage" Template="{StaticResource GamepadButtonControlTemplate}"/>
+		<TextBox x:Name="StatusBox" Header="Connection Status" HorizontalAlignment="Left" Margin="10,136.833,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="364" IsReadOnly="True"/>
+	</Grid>
+</Page>
