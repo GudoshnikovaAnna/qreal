@@ -1,30 +1,85 @@
-DESTDIR = ../bin
+# Copyright 2007-2015 QReal Research Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-CONFIG += c++11
+TEMPLATE = subdirs
 
-CONFIG += rpath_libdirs
-macx {
-	CONFIG -= app_bundle
-}
+SUBDIRS += \
+	mainWindow \
+	systemFacade \
+	models \
+	editor \
+	controller \
+	dialogs \
+	preferencesDialog \
+	textEditor \
+	mouseGestures \
+	hotKeyManager \
+	brandManager \
+	pluginManager \
+	editorPluginInterface \
+	toolPluginInterface \
+	interpretedPluginInterface \
+	thirdparty \
 
-SOURCES = main.cpp
+pluginManager.subdir = $$PWD/plugins/pluginManager
+editorPluginInterface.subdir = $$PWD/plugins/editorPluginInterface
+toolPluginInterface.subdir = $$PWD/plugins/toolPluginInterface
+interpretedPluginInterface.subdir = $$PWD/plugins/interpretedPluginInterface
 
-TRANSLATIONS = qrgui_ru.ts
+mainWindow.depends = \
+	systemFacade \
+	editor \
+	controller \
+	dialogs \
+	preferencesDialog \
+	textEditor \
+	mouseGestures \
+	hotKeyManager \
+	brandManager \
+	thirdparty \
 
-# workaround for http://bugreports.qt.nokia.com/browse/QTBUG-8110
-# when fixed it would become possible to use QMAKE_LFLAGS_RPATH
-!macx {
-	QMAKE_LFLAGS += -Wl,-O1,-rpath,$$PWD/../bin/
-	QMAKE_LFLAGS += -Wl,-rpath,$$PWD/../bin/thirdparty/
-}
+systemFacade.depends = \
+	models \
+	textEditor \
+	pluginManager \
+	toolPluginInterface \
 
-OBJECTS_DIR = .obj
-UI_DIR = .ui
-MOC_DIR = .moc
-RCC_DIR = .moc
+models.depends = \
+	pluginManager \
+	controller \
 
-if (equals(QMAKE_CXX, "g++") : !macx) {
-	QMAKE_LFLAGS += -Wl,-E
-}
+editor.depends = \
+	models \
+	controller \
+	mouseGestures \
+	brandManager \
+	pluginManager \
+	thirdparty \
+	dialogs \
 
-include(qrgui.pri)
+dialogs.depends = \
+	models \
+	thirdparty \
+
+textEditor.depends = \
+	toolPluginInterface \
+
+hotKeyManager.depends = \
+	preferencesDialog \
+
+brandManager.depends = \
+	pluginManager \
+
+pluginManager.depends = \
+	toolPluginInterface \

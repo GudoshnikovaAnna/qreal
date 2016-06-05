@@ -1,1 +1,0 @@
-goto label_@@ID@@;

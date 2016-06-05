@@ -36,12 +36,12 @@
 #include <QtCore/QStringList>
 #include <QtCore/QDir>
 
-void QextSerialEnumeratorPrivate::platformSpecificInit()
+void QextSerialEnumeratorPrivate::init_sys()
 {
 #ifndef QESP_NO_UDEV
-    monitor = NULL;
+    monitor = nullptr;
     notifierFd = -1;
-    notifier = NULL;
+    notifier = nullptr;
 
     udev = udev_new();
     if (!udev)
@@ -49,7 +49,7 @@ void QextSerialEnumeratorPrivate::platformSpecificInit()
 #endif
 }
 
-void QextSerialEnumeratorPrivate::platformSpecificDestruct()
+void QextSerialEnumeratorPrivate::destroy_sys()
 {
 #ifndef QESP_NO_UDEV
     if (notifier) {
@@ -177,7 +177,7 @@ bool QextSerialEnumeratorPrivate::setUpNotifications_sys(bool setup)
 
     // Look for tty devices from udev.
     monitor = udev_monitor_new_from_netlink(udev, "udev");
-    udev_monitor_filter_add_match_subsystem_devtype(monitor, "tty", NULL);
+    udev_monitor_filter_add_match_subsystem_devtype(monitor, "tty", nullptr);
     udev_monitor_enable_receiving(monitor);
     notifierFd = udev_monitor_get_fd(monitor);
     notifier = new QSocketNotifier(notifierFd, QSocketNotifier::Read);
@@ -197,14 +197,14 @@ void QextSerialEnumeratorPrivate::_q_deviceEvent()
     struct udev_device *dev = udev_monitor_receive_device(monitor);
     if (dev) {
         QextPortInfo pi = portInfoFromDevice(dev);
-
         QLatin1String action(udev_device_get_action(dev));
-        udev_device_unref(dev);
 
         if (action == QLatin1String("add"))
             Q_EMIT q->deviceDiscovered(pi);
         else if (action == QLatin1String("remove"))
             Q_EMIT q->deviceRemoved(pi);
+
+        udev_device_unref(dev);
     }
 }
 #endif

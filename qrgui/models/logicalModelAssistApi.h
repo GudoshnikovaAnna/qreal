@@ -1,12 +1,25 @@
+/* Copyright 2007-2016 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #pragma once
 
 #include <qrkernel/ids.h>
 
-#include "models/details/logicalModel.h"
-#include "models/details/modelsAssistApi.h"
-#include "models/details/exploser.h"
-#include "toolPluginInterface/usedInterfaces/logicalModelAssistInterface.h"
-#include "pluginManager/proxyEditorManager.h"
+#include "qrgui/models/modelsDeclSpec.h"
+#include "qrgui/models/details/logicalModel.h"
+#include "qrgui/models/details/modelsAssistApi.h"
+#include "qrgui/plugins/toolPluginInterface/usedInterfaces/logicalModelAssistInterface.h"
 
 namespace qReal {
 
@@ -15,67 +28,72 @@ class EditorManagerInterface;
 
 namespace models {
 
-class LogicalModelAssistApi : public qReal::LogicalModelAssistInterface
+class QRGUI_MODELS_EXPORT LogicalModelAssistApi : public QObject, public qReal::LogicalModelAssistInterface
 {
+	Q_OBJECT
+
 public:
-	LogicalModelAssistApi(details::LogicalModel &logicalModel, EditorManagerInterface const &editorManagerInterface);
+	LogicalModelAssistApi(details::LogicalModel &logicalModel, const EditorManagerInterface &editorManagerInterface);
 	virtual ~LogicalModelAssistApi();
 
-	EditorManagerInterface const &editorManagerInterface() const;
-	Exploser &exploser();
+	const EditorManagerInterface &editorManagerInterface() const override;
 
-	virtual qrRepo::LogicalRepoApi const &logicalRepoApi() const;
-	virtual qrRepo::LogicalRepoApi &mutableLogicalRepoApi();
-	virtual Id createElement(Id const &parent, Id const &type);
-	virtual Id createElement(Id const &parent, Id const &id
-			, bool isFromLogicalModel, QString const &name
-			, QPointF const &position, Id const &preferedLogicalId = Id());
+	const qrRepo::LogicalRepoApi &logicalRepoApi() const override;
+	qrRepo::LogicalRepoApi &mutableLogicalRepoApi() override;
+	Id createElement(const Id &parent, const Id &type) override;
+	Id createElement(const Id &parent, const Id &id, bool isFromLogicalModel, const QString &name
+			, const QPointF &position, const Id &preferedLogicalId = Id()) override;
+	void createElements(QList<ElementInfo> &elements) override;
 
-	virtual IdList children(Id const &element) const;
-	virtual void changeParent(Id const &element, Id const &parent, QPointF const &position = QPointF());
+	Id parent(const Id &element) const;
+	IdList children(const Id &element) const override;
+	void changeParent(const Id &element, const Id &parent, const QPointF &position = QPointF()) override;
 
-	virtual void addExplosion(Id const &source, Id const &destination);
-	virtual void removeExplosion(Id const &source, Id const &destination);
+	void addExplosion(const Id &source, const Id &destination) override;
+	void removeExplosion(const Id &source, const Id &destination) override;
 
-	virtual void stackBefore(Id const &element, Id const &sibling);
+	void setPropertyByRoleName(const Id &elem, const QVariant &newValue, const QString &roleName) override;
+	QVariant propertyByRoleName(const Id &elem, const QString &roleName) const override;
 
-	virtual void setPropertyByRoleName(Id const &elem, QVariant const &newValue, QString const &roleName);
-	virtual QVariant propertyByRoleName(Id const &elem, QString const &roleName) const;
+	bool isLogicalId(const Id &id) const override;
 
-	virtual bool isLogicalId(Id const &id) const;
+	void removeReferencesTo(const Id &id) override;
+	void removeReferencesFrom(const Id &id) override;
+	void removeReference(const Id &id, const Id &reference) override;
 
-	virtual void removeReferencesTo(Id const &id);
-	virtual void removeReferencesFrom(Id const &id);
-	virtual void removeReference(Id const &id, Id const &reference);
+	void setName(const Id &elem, const QString &newValue) override;
+	QString name(const Id &elem) const override;
 
-	virtual void setName(Id const &elem, QString const &newValue);
-	virtual QString name(Id const &elem) const;
+	void setTo(const Id &elem, const Id &newValue) override;
+	Id to(const Id &elem) const override;
 
-	virtual void setTo(Id const &elem, Id const &newValue);
-	virtual Id to(Id const &elem) const;
+	void setFrom(const Id &elem, const Id &newValue) override;
+	Id from(const Id &elem) const override;
 
-	virtual void setFrom(Id const &elem, Id const &newValue);
-	virtual Id from(Id const &elem) const;
+	QModelIndex indexById(const Id &id) const override;
+	Id idByIndex(const QModelIndex &index) const override;
+	QPersistentModelIndex rootIndex() const override;
+	Id rootId() const override;
 
-	virtual QModelIndex indexById(Id const &id) const;
-	virtual Id idByIndex(QModelIndex const &index) const;
-	virtual QPersistentModelIndex rootIndex() const;
-	virtual Id rootId() const;
+	bool hasRootDiagrams() const override;
+	int childrenOfRootDiagram() const override;
+	int childrenOfDiagram(const Id &parent) const override;
 
-	virtual bool hasRootDiagrams() const;
-	virtual int childrenOfRootDiagram() const;
-	virtual int childrenOfDiagram(const Id &parent) const;
+	void removeElement(const Id &logicalId) override;
 
-	virtual void removeElement(Id const &logicalId);
+	/// Returns a mapping of known editors used for current save creation to their versions.
+	QMap<Id, Version> editorVersions() const;
+
+signals:
+	/// Emitted each time when new element was added into the logical model.
+	void elementAdded(const Id &id);
 
 private:
-	LogicalModelAssistApi(LogicalModelAssistApi const &);  // Copying is forbidden
-	LogicalModelAssistApi& operator =(LogicalModelAssistApi const &); // Assignment is forbidden also
+	LogicalModelAssistApi(const LogicalModelAssistApi &);  // Copying is forbidden
+	LogicalModelAssistApi& operator =(const LogicalModelAssistApi &); // Assignment is forbidden too
 
 	details::ModelsAssistApi mModelsAssistApi;
 	details::LogicalModel &mLogicalModel;
-	Exploser mExploser;
-	EditorManagerInterface const &mEditorManager;
 };
 
 }

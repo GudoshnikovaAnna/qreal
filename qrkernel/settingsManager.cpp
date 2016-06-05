@@ -1,3 +1,17 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include "settingsManager.h"
 
 #include <QtCore/QHash>
@@ -11,30 +25,30 @@ SettingsManager* SettingsManager::mInstance = nullptr;
 
 SettingsManager::SettingsManager()
 	: mSettings("SPbSU", "QReal")
-	, mUXInfoInterface(NULL)
 {
 	initDefaultValues();
 	load();
 }
 
-void SettingsManager::setValue(QString const &name, QVariant const &value)
+SettingsManager::~SettingsManager()
 {
-	instance()->reportValueSetting(name, instance()->value(name), value);
-	instance()->set(name, value);
 }
 
-void SettingsManager::setUXInfo(UXInfoInterface *uxInfo)
+void SettingsManager::setValue(const QString &name, const QVariant &value)
 {
-	instance()->setUXInfoInterface(uxInfo);
+	const QVariant oldValue = instance()->value(name);
+	if (oldValue != value) {
+		instance()->set(name, value);
+		emit instance()->settingsChanged(name, oldValue, value);
+	}
 }
 
-
-QVariant SettingsManager::value(QString const &key)
+QVariant SettingsManager::value(const QString &key)
 {
 	return instance()->get(key);
 }
 
-QVariant SettingsManager::value(QString const &key, QVariant const &defaultValue)
+QVariant SettingsManager::value(const QString &key, const QVariant &defaultValue)
 {
 	return instance()->get(key, defaultValue);
 }
@@ -44,80 +58,82 @@ SettingsManager* SettingsManager::instance()
 	if (mInstance == nullptr) {
 		mInstance = new SettingsManager();
 	}
+
 	return mInstance;
 }
 
-void SettingsManager::set(QString const &name, QVariant const &value)
+void SettingsManager::set(const QString &name, const QVariant &value)
 {
 	mData[name] = value;
 }
 
-QVariant SettingsManager::get(QString const &name, QVariant const &defaultValue) const
+QVariant SettingsManager::get(const QString &name, const QVariant &defaultValue) const
 {
 	if (mData.contains(name)) {
 		return mData[name];
 	}
-	if (mDefaultValues.contains(name) && defaultValue == QVariant()) {
+
+	if (mDefaultValues.contains(name)) {
 		return mDefaultValues[name];
 	}
+
 	return defaultValue;
-}
-
-void SettingsManager::setUXInfoInterface(UXInfoInterface *uxInfo)
-{
-	mUXInfoInterface = uxInfo;
-}
-
-void SettingsManager::reportValueSetting(QString const &name, QVariant const &oldValue, QVariant const &newValue)
-{
-	if (oldValue == newValue) {
-		return;
-	}
-
-	if (mUXInfoInterface) {
-		mUXInfoInterface->reportSettingsChanges(name, oldValue, newValue);
-	}
 }
 
 void SettingsManager::saveData()
 {
-	foreach (QString const &name, mData.keys()) {
+	for (const QString &name : mData.keys()) {
 		mSettings.setValue(name, mData[name]);
 	}
+
 	mSettings.sync();
 }
 
-void SettingsManager::saveSettings(QString fileNameForExport)
+void SettingsManager::saveSettings(const QString &fileNameForExport)
 {
-	QSettings settingsForSave(fileNameForExport,QSettings::IniFormat);
-	foreach (QString const &name, mData.keys()) {
+	QSettings settingsForSave(fileNameForExport, QSettings::IniFormat);
+	for (const QString &name : mData.keys()) {
 		settingsForSave.setValue(name, mData[name]);
 	}
+
 	settingsForSave.sync();
 }
 
 void SettingsManager::load()
 {
-	foreach (QString const &name, mSettings.allKeys()) {
+	for (const QString &name : mSettings.allKeys()) {
 		mData[name] = mSettings.value(name);
 	}
 }
 
-void SettingsManager::loadSettings(QString  const &fileNameForImport)
+void SettingsManager::loadSettings(const QString &fileNameForImport)
 {
-	QSettings settings(fileNameForImport,QSettings::IniFormat);
-	foreach (QString const &name, settings.allKeys()) {
-		mData[name] = settings.value(name);
-	}
+	mergeSettings(fileNameForImport, mData);
 	saveData();
 }
 
 void SettingsManager::initDefaultValues()
 {
-	QSettings values(":/settingsDefaultValues", QSettings::IniFormat);
+	mergeSettings(":/settingsDefaultValues", mDefaultValues);
+}
 
-	foreach (QString key, values.allKeys()) {
-		mDefaultValues.insert(key, values.value(key));
+void SettingsManager::loadDefaultSettings(const QString &filePath)
+{
+	instance()->mergeSettings(filePath, instance()->mDefaultValues);
+}
+
+void SettingsManager::mergeSettings(const QString &fileNameForImport, QHash<QString, QVariant> &target)
+{
+	QSettings settings(fileNameForImport, QSettings::IniFormat);
+	for (const QString &name : settings.allKeys()) {
+		const QVariant newValue = settings.value(name);
+		const QVariant oldValue = target[name];
+		if (newValue != oldValue) {
+			target[name] = settings.value(name);
+			if (target == mData || !mData.contains(name)) {
+				emit settingsChanged(name, oldValue, newValue);
+			}
+		}
 	}
 }
 

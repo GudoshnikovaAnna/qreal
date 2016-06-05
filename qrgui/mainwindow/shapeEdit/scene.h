@@ -1,3 +1,17 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #pragma once
 
 #include <QtWidgets/QGraphicsScene>
@@ -9,21 +23,20 @@
 #include <qrutils/graphicsUtils/abstractScene.h>
 #include <qrkernel/settingsManager.h>
 
-#include "mainwindow/shapeEdit/view.h"
-#include "mainwindow/shapeEdit/item.h"
-#include "mainwindow/shapeEdit/arch.h"
-#include "mainwindow/shapeEdit/line.h"
-#include "mainwindow/shapeEdit/ellipse.h"
-#include "mainwindow/shapeEdit/rectangle.h"
-#include "mainwindow/shapeEdit/text.h"
-#include "mainwindow/shapeEdit/textPicture.h"
-#include "mainwindow/shapeEdit/pointPort.h"
-#include "mainwindow/shapeEdit/linePort.h"
-#include "mainwindow/shapeEdit/stylus.h"
-#include "mainwindow/shapeEdit/path.h"
-#include "mainwindow/shapeEdit/curve.h"
-#include "mainwindow/shapeEdit/image.h"
-#include "umllib/label.h"
+#include "mainWindow/shapeEdit/view.h"
+#include "mainWindow/shapeEdit/item.h"
+#include "mainWindow/shapeEdit/arch.h"
+#include "mainWindow/shapeEdit/line.h"
+#include "mainWindow/shapeEdit/ellipse.h"
+#include "mainWindow/shapeEdit/rectangle.h"
+#include "mainWindow/shapeEdit/text.h"
+#include "mainWindow/shapeEdit/textPicture.h"
+#include "mainWindow/shapeEdit/pointPort.h"
+#include "mainWindow/shapeEdit/linePort.h"
+#include "mainWindow/shapeEdit/stylus.h"
+#include "mainWindow/shapeEdit/path.h"
+#include "mainWindow/shapeEdit/curve.h"
+#include "mainWindow/shapeEdit/image.h"
 
 const int sizeEmptyRectX = 680;
 const int sizeEmptyRectY = 580;
@@ -34,9 +47,9 @@ class Scene : public graphicsUtils::AbstractScene
 public:
 	Scene(graphicsUtils::AbstractView *view, QObject *parent = 0);
 	QPoint centerEmpty();
-	void changeTextName(QString const &name);
+	void changeTextName(const QString &name);
 	void setZValue(Item* item);
-	void addImage(QString const &fileName);
+	void addImage(const QString &fileName);
 
 	void drawLine(bool checked);
 	void drawEllipse(bool checked);
@@ -54,20 +67,20 @@ public:
 
 signals:
 	void noSelectedItems();
-	void existSelectedItems(QPen const &penItem, QBrush const &brushItem);
+	void existSelectedItems(const QPen &penItem, const QBrush &brushItem);
 	void noSelectedTextPictureItems();
-	void existSelectedTextPictureItems(QPen const &penItem, QFont const &fontItem, QString const &name);
+	void existSelectedTextPictureItems(const QPen &penItem, const QFont &fontItem, const QString &name);
 	void noSelectedPortItems();
-	void existSelectedPortItems(QString const &type);
+	void existSelectedPortItems(const QString &type);
 	void resetHighlightAllButtons();
 
 private slots:
-	void changePenStyle(QString const &text);
+	void changePenStyle(const QString &text);
 	void changePenWidth(int width);
-	void changePenColor(QString const &text);
-	void changeBrushStyle(QString const &text);
-	void changeBrushColor(QString const &text);
-	void changePortsType(QString const &type);
+	void changePenColor(const QString &text);
+	void changeBrushStyle(const QString &text);
+	void changeBrushColor(const QString &text);
+	void changePortsType(const QString &type);
 
 	void changePalette();
 	void changeFontPalette();
@@ -75,7 +88,7 @@ private slots:
 
 	void changeFontFamily(const QFont& font);
 	void changeFontPixelSize(int size);
-	void changeFontColor(QString const &text);
+	void changeFontColor(const QString &text);
 	void changeFontItalic(bool isChecked);
 	void changeFontBold(bool isChecked);
 	void changeFontUnderline(bool isChecked);

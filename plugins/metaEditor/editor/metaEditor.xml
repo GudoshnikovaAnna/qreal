@@ -4,33 +4,33 @@
 	<namespace>UML 2.0</namespace>
 	<diagram name="MetaEditor" nodeName="MetamodelDiagram" displayedName="Meta Editor">
 		<nonGraphicTypes>
-			<enum name="associationTypes" displayedName="associationTypes">
-				<value>no_arrow</value>
-				<value>open_arrow</value>
-				<value>empty_arrow</value>
-				<value>filled_arrow</value>
-				<value>empty_rhomb</value>
-				<value>filled_rhomb</value>
-				<value>crossed_line</value>
-                <value>empty_circle</value>
+			<enum name="associationTypes" displayedName="Association Types">
+				<value name="no_arrow" displayedName="No arrow"/>
+				<value name="open_arrow" displayedName="Opened arrow"/>
+				<value name="empty_arrow" displayedName="Empty arrow"/>
+				<value name="filled_arrow" displayedName="Filled arrow"/>
+				<value name="empty_rhomb" displayedName="Empty rhomb"/>
+				<value name="filled_rhomb" displayedName="Filled rhomb"/>
+				<value name="crossed_line" displayedName="Crossed line"/>
+				<value name="empty_circle" displayedName="Empty circle"/>
 			</enum>
-			<enum name="lineTypes" displayedName="lineTypes">
-				<value>solidLine</value>
-				<value>dashLine</value>
-				<value>dotLine</value>
+			<enum name="lineTypes" displayedName="Line Types">
+				<value name="solidLine" displayedName="Solid line"/>
+				<value name="dashLine" displayedName="Dash line"/>
+				<value name="dotLine" displayedName="Dot line"/>
 			</enum>
-			<enum name="linkShapeType" displayedName="linkShapeType">
-				<value>broken</value>
-				<value>square</value>
-				<value>curve</value>
+			<enum name="linkShapeType" displayedName="Link Shape Type">
+				<value name="broken" displayedName="Broken"/>
+				<value name="square" displayedName="Square"/>
+				<value name="curve" displayedName="Curve"/>
 			</enum>
-			<enum name="labelTypes" displayedName="labelTypes">
-				<value>Static text</value>
-				<value>Dynamic text</value>
+			<enum name="labelTypes" displayedName="Label Types">
+				<value name="staticText" displayedName="Static text"/>
+				<value name="dynamicText" displayedName="Dynamic text"/>
 			</enum>
-			<enum name="buildConfiguration" displayedName="buildConfiguration">
-				<value>debug</value>
-				<value>release</value>
+			<enum name="buildConfiguration" displayedName="Build Configuration">
+				<value name="debug" displayedName="Debug"/>
+				<value name="release" displayedName="Release"/>
 			</enum>
 		</nonGraphicTypes>
 		<graphicTypes>
@@ -61,7 +61,7 @@
 				</graphics>
 				<logic>
 					<generalizations>
-						<parent parentName="KernelDiagram::Diagram"/>
+						<parent parentName="KernelDiagram::Diagram" overrides="all"/>
 					</generalizations>
 					<properties/>
 				</logic>
@@ -94,6 +94,10 @@
 						</property>
 						<property type="buildConfiguration" name="buildConfiguration" displayedName="Build Configuration">
 							<default>release</default>
+						</property>
+						<property type="string" name="version" displayedName="Version">
+							<description>An editor`s version. Examples: '2', '2.9.3', '3.0.0-rc1'</description>
+							<default>1.0.0</default>
 						</property>
 					</properties>
 					<containers/>
@@ -128,7 +132,7 @@
 				</graphics>
 				<logic>
 					<generalizations>
-						<parent parentName="KernelDiagram::Diagram"/>
+						<parent parentName="KernelDiagram::Diagram" overrides="all"/>
 					</generalizations>
 					<properties>
 						<property type="string" name="displayedName"/>
@@ -141,6 +145,7 @@
 						<contains type="MetaEditor::MetaEntityEdge"/>
 						<contains type="MetaEditor::MetaEntityPort"/>
 						<contains type="MetaEditor::MetaEntityEnum"/>
+						<contains type="MetaEditor::MetaEntityGroup"/>
 						<contains type="MetaEditor::MetaEntityImport"/>
 						<contains type="MetaEditor::Inheritance"/>
 					</container>
@@ -179,12 +184,13 @@
 				</graphics>
 				<logic>
 					<generalizations>
-						<parent parentName="KernelDiagram::Diagram"/>
+						<parent parentName="KernelDiagram::Diagram" overrides="all"/>
 					</generalizations>
 					<properties>
 						<property type="string" name="displayedName"/>
 						<property type="string" name="shape"/>
 						<property type="string" name="description"/>
+						<property type="string" name="abstract"/>
 						<property type="bool" name="isAction">
 							<default>false</default>
 						</property>
@@ -193,6 +199,7 @@
 							<default>true</default>
 						</property>
 						<property type="bool" name="createChildrenFromMenu"/>
+						<property type="string" name="generationRule"/>
 					</properties>
 					<container>
 						<contains type="MetaEditor::MetaEntity Attribute"/>
@@ -264,8 +271,16 @@
 					<generalizations/>
 					<properties>
 						<property type="string" name="displayedName"/>
+						<property type="string" name="description"/>
+						<property type="string" name="path"/>
+						<property type="bool" name="isDividable">
+							<default>false</default>
+						</property>
+						<property type="bool" name="hardLabel">
+							<default>true</default>
+						</property>
 						<property type="labelTypes" name="labelType">
-							<default>Dynamic text</default>
+							<default>dynamicText</default>
 							<description>тип текста(статический, динамический)</description>
 						</property>
 						<property type="string" name="labelText"/>
@@ -280,12 +295,20 @@
 							<reference type="MetaEntityPort"/>
 						</property>
 						<property type="linkShapeType" name="shape">
-							<default>square</default>
+							<default>broken</default>
 						</property>
+      						<property type="associationTypes" name="beginType">
+							<default>no_arrow</default>
+						</property>
+						<property type="associationTypes" name="endType">
+							<default>no_arrow</default>
+						</property>
+                                                        
+						<property type="string" name="beginName"/>
+						<property type="string" name="endName"/>
 					</properties>
 					<container>
 						<contains type="MetaEditor::MetaEntity Attribute"/>
-						<contains type="MetaEditor::MetaEntityAssociation"/>
 						<contains type="MetaEditor::Inheritance"/>
 						<contains type="MetaEditor::Importation"/>
 						<properties>
@@ -325,6 +348,9 @@
 					<generalizations/>
 					<properties>
 						<property type="string" name="displayedName"/>
+						<property type="bool" name="editable">
+							<default>false</default>
+						</property>
 					</properties>
 					<container>
 						<contains type="MetaEditor::MetaEntityValue"/>
@@ -400,6 +426,80 @@
 					<generalizations/>
 					<properties>
 						<property type="string" name="valueName"/>
+						<property type="string" name="displayedName"/>
+					</properties>
+					<containers/>
+				</logic>
+			</node>
+			<node name="MetaEntityGroup" displayedName="Group" description="">
+				<graphics>
+					<picture sizex="200" sizey="200">
+						<line fill="#000000" stroke-style="dash" stroke="#2f4f4f" y1="0" x1="0" y2="200" stroke-width="2" x2="0" fill-style="solid"/>
+						<line fill="#000000" stroke-style="dash" stroke="#2f4f4f" y1="0" x1="200" y2="200" stroke-width="2" x2="200" fill-style="solid"/>
+						<line fill="#000000" stroke-style="dash" stroke="#2f4f4f" y1="0" x1="0" y2="0" stroke-width="2" x2="200" fill-style="solid"/>
+						<line fill="#000000" stroke-style="dash" stroke="#2f4f4f" y1="200" x1="0" y2="200" stroke-width="2" x2="200" fill-style="solid"/>
+					</picture>
+					<labels>
+						<label x="5" y="3" textBinded="name" center="true"/>
+					</labels>
+					<ports>
+						<linePort>
+							<start startx="20" starty="0"/>
+							<end endx="180" endy="0"/>
+						</linePort>
+						<linePort>
+							<start startx="20" starty="100"/>
+							<end endx="180" endy="100"/>
+						</linePort>
+						<linePort>
+							<start starty="20" startx="0"/>
+							<end endy="180" endx="0"/>
+						</linePort>
+						<linePort>
+							<start starty="20" startx="100"/>
+							<end endy="180" endx="100"/>
+						</linePort>
+					</ports>
+				</graphics>
+				<logic>
+					<generalizations/>
+					<properties>
+						<property type="string" name="rootNode"/>
+					</properties>
+					<container>
+						<contains type="MetaEditor::MetaEntityGroupNode"/>
+						<properties>
+							<sortContainer/>
+							<minimizeToChildren/>
+							<banChildrenMove/>
+							<forestalling size="5,25,5,5"/>
+							<childrenForestalling size="5"/>
+						</properties>
+					</container>
+				</logic>
+			</node>
+			<node name="MetaEntityGroupNode" displayedName="Group Node" description="">
+				<graphics>
+					<picture sizex="140" sizey="12">
+					</picture>
+					<labels>
+						<label x="10" y="0" textBinded="name"/>
+					</labels>
+					<ports/>
+				</graphics>
+				<logic>
+					<generalizations/>
+					<properties>
+						<property type="reference" name="type">
+							<reference type="MetaEntityNode"/>
+						</property>
+						<property type="string" name="parent"/>
+						<property type="int" name="xPosition">
+							<default>0</default>
+						</property>
+						<property type="int" name="yPosition">
+							<default>0</default>
+						</property>
 					</properties>
 					<containers/>
 				</logic>
@@ -420,35 +520,6 @@
 					<generalizations/>
 					<properties>
 						<property type="string" name="type"/>
-					</properties>
-					<containers/>
-				</logic>
-			</node>
-			<node name="MetaEntityAssociation" displayedName="Assotiation" description="Элемент для указания типов и имен начала и конца связи (см. Edge). Вкладывается в соответствующий элемент Edge">
-				<graphics>
-					<picture sizex="120" sizey="40">
-						<line fill="#000000" stroke-style="solid" stroke="#2f4f4f" y1="20" x1="0" y2="20" stroke-width="1" x2="120" fill-style="solid"/>
-						<line fill="#000000" stroke-style="solid" stroke="#2f4f4f" y1="20" x1="120" y2="10" stroke-width="1" x2="100" fill-style="solid"/>
-						<line fill="#000000" stroke-style="solid" stroke="#2f4f4f" y1="20" x1="120" y2="30" stroke-width="1" x2="100" fill-style="solid"/>
-						<line fill="#000000" stroke-style="solid" stroke="#2f4f4f" y1="20" x1="0" y2="10" stroke-width="1" x2="20" fill-style="solid"/>
-						<line fill="#000000" stroke-style="solid" stroke="#2f4f4f" y1="20" x1="0" y2="30" stroke-width="1" x2="20" fill-style="solid"/>
-					</picture>
-					<labels>
-						<label x="10" y="5" textBinded="name" center="true"/>
-					</labels>
-					<ports/>
-				</graphics>
-				<logic>
-					<generalizations/>
-					<properties>
-						<property type="associationTypes" name="beginType">
-							<default>no_arrow</default>
-						</property>
-						<property type="associationTypes" name="endType">
-							<default>no_arrow</default>
-						</property>
-						<property type="string" name="beginName"/>
-						<property type="string" name="endName"/>
 					</properties>
 					<containers/>
 				</logic>
@@ -482,8 +553,11 @@
 						<association beginName="Inheritance1" endName="Inheritance2"/>
 					</associations>
 					<generalizations>
-						<parent parentName="KernelDiagram::Relationship"/>
+						<parent parentName="KernelDiagram::Relationship" overrides="all"/>
 					</generalizations>
+					<properties>
+					        <property type="string" name="overrides"/>
+					</properties>
 				</logic>
 			</edge>
 			<edge name="Container" displayedName="Container" description="Связь, указывающая отношение вложенности между элементами (направления – от вкладываемого элемента к тому, в который вкладывается)">
@@ -495,7 +569,7 @@
 						<association beginName="Container1" endName="Container2"/>
 					</associations>
 					<generalizations>
-						<parent parentName="KernelDiagram::Relationship"/>
+						<parent parentName="KernelDiagram::Relationship" overrides="all"/>
 					</generalizations>
 				</logic>
 			</edge>
@@ -508,7 +582,7 @@
 						<association beginName="Explosion1" endName="Explosion2"/>
 					</associations>
 					<generalizations>
-						<parent parentName="KernelDiagram::Relationship"/>
+						<parent parentName="KernelDiagram::Relationship" overrides="all"/>
 					</generalizations>
 					<properties>
 						<property type="bool" name="makeReusable" />
@@ -627,6 +701,10 @@
 				<element name="Inheritance"/>
 				<element name="Container"/>
 				<element name="Explosion"/>
+			</group>
+			<group name="Grouping" description="">
+				<element name="MetaEntityGroup"/>
+				<element name="MetaEntityGroupNode"/>
 			</group>
 		</palette>
 	</diagram>

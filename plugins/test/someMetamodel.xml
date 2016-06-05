@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<metamodel version="1.0.0" xmlns="http://schema.real.com/schema/">
+<metamodel xmlns="http://schema.real.com/schema/" version="1.0.0">
     <namespace>UML 2.0</namespace>
-    <diagram name="Joystick" nodeName="Joystick">
+    <diagram nodeName="ConnectionNode" name="Joystick">
         <graphicTypes>
-            <node name="Buttuns" displayedName="Buttons">
+            <node displayedName="Buttons" name="Buttuns">
                 <graphics>
                     <picture sizex="95" sizey="90">
-                        <image name="images/button.png" y1="0" x1="0" x2="93" y2="88"/>
+                        <image x2="93" y1="0" name="images/button.png" x1="0" y2="88"/>
                     </picture>
                     <labels/>
                     <ports/>
@@ -14,17 +14,17 @@
                 <logic>
                     <container/>
                     <properties>
-                        <property name="Property" type="int" displayedName="Quantity">
+                        <property displayedName="Quantity" type="int" name="Quantity">
                             <default>1</default>
                         </property>
                     </properties>
                     <explodesTo/>
                 </logic>
             </node>
-            <node name="Pads" displayedName="Pads">
+            <node displayedName="Pads" name="Pads">
                 <graphics>
                     <picture sizex="120" sizey="109">
-                        <image name="images/dPad.png" y1="0" x1="0" x2="118a" y2="107"/>
+                        <image x2="118a" y1="0" name="images/dPad.png" x1="0" y2="107"/>
                     </picture>
                     <labels/>
                     <ports/>
@@ -32,30 +32,17 @@
                 <logic>
                     <container/>
                     <properties>
-                        <property name="Property" type="int" displayedName="Quantity">
+                        <property displayedName="Quantity" type="int" name="Quantity">
                             <default>2</default>
                         </property>
                     </properties>
                     <explodesTo/>
                 </logic>
             </node>
-            <node name="ConnectionNode" displayedName="ConectionNode">
+            <node displayedName="ConectionNode" name="ConnectionNode">
                 <graphics>
                     <picture sizex="101" sizey="96">
-                        <image name="images/connection.png" y1="0" x1="0" x2="99a" y2="94"/>
-                    </picture>
-                    <labels/>
-                    <ports/>
-                </graphics>
-                <logic>
-                    <container/>
-                    <explodesTo/>
-                </logic>
-            </node>
-            <node name="Joystick" displayedName="Joystick">
-                <graphics>
-                    <picture sizex="118" sizey="95">
-                        <ellipse y1="0" x2="116" x1="0" fill-style="none" stroke="#ff000000" stroke-width="0" stroke-style="solid" fill="#ffffffff" y2="93"/>
+                        <image x2="99a" y1="0" name="images/connection.png" x1="0" y2="94"/>
                     </picture>
                     <labels/>
                     <ports/>

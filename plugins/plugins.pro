@@ -1,39 +1,44 @@
+# Copyright 2007-2015 QReal Research Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 TEMPLATE = subdirs
 
+include(common.pri)
+
 # editor plugins
-SUBDIRS	= \
-	dragonDiagram/dragonDiagram.pro \
-	blockDiagram/blockDiagram.pro \
-#	hascol/hascol.pro \
-        metaEditor/metaEditor.pro \
-        requirements/requirements.pro \
-        domainAnalysis/domainAnalysis.pro \
+SUBDIRS += \
+	$$PWD/ains/ains.pro \
+	$$PWD/blockDiagram/blockDiagram.pro \
+	$$PWD/deployment/deploymentEditor.pro \
+	$$PWD/domainAnalysis/domainAnalysis.pro \
+	$$PWD/dragonDiagram/dragonDiagram.pro \
+	$$PWD/hascol/hascol.pro \
+	$$PWD/metaEditor/metaEditor.pro \
+	$$PWD/requirements/requirements.pro \
+        $$PWD/appFamily/appFamily.pro \
 
-
+# interpreted plugins
+SUBDIRS += \
+	generationRulesTool/generationRulesTool.pro \
 
 # tool plugins
 SUBDIRS += \
-#	testInvocation/testInvocation.pro \
-	exterminatus/exterminatus.pro \
-	visualInterpreter/visualInterpreter.pro \
-	refactoring/refactoring.pro \
+	$$PWD/tools/exterminatus/exterminatus.pro \
+	$$PWD/tools/visualInterpreter/visualInterpreter.pro \
+	$$PWD/tools/refactoring/refactoring.pro \
+	$$PWD/tools/uxInfo/uxInfo.pro \
 
-
-# QReal:Robots
-SUBDIRS += \
-#	robots/robots.pro \
-
-
-# QReal:BP
-SUBDIRS += \
-#	bpmn/bpmn.pro \
-#	rulesChecker/rulesChecker.pro \
-#	classDiagram/classDiagram.pro \
-
-
-# QReal:Ubiq
-SUBDIRS += \
-#	ubiq/ubiq.pro \
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qrutils/release/ -lqrutils
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qrutils/debug/ -lqrutils

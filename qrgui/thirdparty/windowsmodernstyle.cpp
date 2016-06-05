@@ -54,8 +54,8 @@ typedef bool (WINAPI* PtrIsAppThemed)();
 typedef HRESULT (WINAPI* PtrGetCurrentThemeName)( OUT LPWSTR pszThemeFileName, int cchMaxNameChars, OUT OPTIONAL LPWSTR pszColorBuff,
 	int cchMaxColorChars, OUT OPTIONAL LPWSTR pszSizeBuff, int cchMaxSizeChars );
 
-static PtrIsAppThemed pIsAppThemed = NULL;
-static PtrGetCurrentThemeName pGetCurrentThemeName = NULL;
+static PtrIsAppThemed pIsAppThemed = nullptr;
+static PtrGetCurrentThemeName pGetCurrentThemeName = nullptr;
 
 // :(
 #define QWindowsVistaStyle QProxyStyle
@@ -95,15 +95,15 @@ static QColor colorRole( QPalette::ColorRole role )
 	return QApplication::palette().color( role );
 }
 
-static QColor blendColors( const QColor& src, const QColor& dest, double alpha )
+static QColor blendColors( const QColor& src, const QColor& dest, qreal alpha )
 {
-	double red = alpha * src.red() + ( 1.0 - alpha ) * dest.red();
-	double green = alpha * src.green() + ( 1.0 - alpha ) * dest.green();
-	double blue = alpha * src.blue() + ( 1.0 - alpha ) * dest.blue();
+	qreal red = alpha * src.red() + ( 1.0 - alpha ) * dest.red();
+	qreal green = alpha * src.green() + ( 1.0 - alpha ) * dest.green();
+	qreal blue = alpha * src.blue() + ( 1.0 - alpha ) * dest.blue();
 	return QColor( (int)( red + 0.5 ), (int)( green + 0.5 ), (int)( blue + 0.5 ) );
 }
 
-static QColor blendRoles( QPalette::ColorRole src, QPalette::ColorRole dest, double alpha )
+static QColor blendRoles( QPalette::ColorRole src, QPalette::ColorRole dest, qreal alpha )
 {
 	QPalette palette = QApplication::palette();
 	return blendColors( palette.color( src ), palette.color( dest ), alpha );
@@ -138,7 +138,7 @@ void WindowsModernStyle::polish( QPalette& palette )
 	WCHAR themeFileName[ maxLength ];
 	WCHAR themeColor[ maxLength ];
 
-	if ( pIsAppThemed && pIsAppThemed() && pGetCurrentThemeName( themeFileName, maxLength, themeColor, maxLength, NULL, 0 ) == S_OK ) {
+	if ( pIsAppThemed && pIsAppThemed() && pGetCurrentThemeName( themeFileName, maxLength, themeColor, maxLength, nullptr, 0 ) == S_OK ) {
 		QString name = QString::fromWCharArray( themeFileName );
 		QString color = QString::fromWCharArray( themeColor );
 		if ( name.endsWith( "Luna.msstyles" ) ) {
@@ -273,7 +273,7 @@ static const QTabWidget* isStyledTabWidget( const QWidget* widget )
 		if ( qobject_cast<const QMainWindow*>( tabWidget->window() ) )
 			return tabWidget;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static const QTabBar* isStyledTabBar( const QWidget* widget )
@@ -283,7 +283,7 @@ static const QTabBar* isStyledTabBar( const QWidget* widget )
 		if ( qobject_cast<const QMainWindow*>( tabBar->window() ) )
 			return tabBar;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static bool isToolBoxButton( const QWidget* widget )
@@ -1058,7 +1058,7 @@ class WindowsModernStylePlugin : public QStylePlugin
 {
 public: // overrides
 	QStringList keys() const;
-	QStyle* create( QString const &key );
+	QStyle* create( const QString &key );
 };
 
 QStringList WindowsModernStylePlugin::keys() const
@@ -1066,11 +1066,11 @@ QStringList WindowsModernStylePlugin::keys() const
 	return QStringList() << "WindowsModernStyle";
 }
 
-QStyle* WindowsModernStylePlugin::create( QString const &key )
+QStyle* WindowsModernStylePlugin::create( const QString &key )
 {
 	if ( key.toLower() == QLatin1String( "windowsmodernstyle" ) )
 		return new WindowsModernStyle();
-	return NULL;
+	return nullptr;
 }
 
 #if !defined( WMSTYLE_EXPORT_PLUGIN )

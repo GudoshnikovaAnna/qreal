@@ -1,7 +1,6 @@
 *~
 *.autosave
 *.a
-*.core
 *.moc
 *.o
 *.obj
@@ -21,3 +20,21 @@ bin/*
 *.Debug
 *.Release
 *.prf
+usabilityFiles/*
+**/.build/*
+
+# Generated editors
+**/generated/elements.h
+**/generated/pluginInterface.h
+**/generated/pluginInterface.cpp
+**/generated/ports.h
+plugin.qrc
+
+# Doxygen
+**/doxygen/html/*
+
+# Visual Paradigm temporaries
+umlDocumentation/*\~*
+
+# Installers temporary data
+**/ru.qreal.root*/data/*

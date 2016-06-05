@@ -1,1 +1,0 @@
-(systick_get_ms() - __interpretation_started_timestamp__)

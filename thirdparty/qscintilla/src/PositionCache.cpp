@@ -56,7 +56,7 @@ LineLayout::LineLayout(int maxLineLength_) :
 	validity(llInvalid),
 	xHighlightGuide(0),
 	highlightColumn(0),
-	psel(NULL),
+	psel(nullptr),
 	containsCaret(false),
 	edgeColumn(0),
 	chars(0),
@@ -217,7 +217,7 @@ LineLayoutCache::~LineLayoutCache() {
 }
 
 void LineLayoutCache::Allocate(int length_) {
-	PLATFORM_ASSERT(cache == NULL);
+	PLATFORM_ASSERT(cache == nullptr);
 	allInvalidated = false;
 	length = length_;
 	size = length;
@@ -254,7 +254,7 @@ void LineLayoutCache::AllocateForLevel(int linesOnScreen, int linesInDoc) {
 		length = lengthForLevel;
 	}
 	PLATFORM_ASSERT(length == lengthForLevel);
-	PLATFORM_ASSERT(cache != NULL || length == 0);
+	PLATFORM_ASSERT(cache != nullptr || length == 0);
 }
 
 void LineLayoutCache::Deallocate() {
@@ -604,7 +604,7 @@ void PositionCache::MeasureWidths(Surface *surface, ViewStyle &vstyle, unsigned 
 		// long comments with only a single comment.
 
 		// Two way associative: try two probe positions.
-		int hashValue = PositionCacheEntry::Hash(styleNumber, s, len);
+		qint64 hashValue = PositionCacheEntry::Hash(styleNumber, s, len);
 		probe = static_cast<int>(hashValue % size);
 		if (pces[probe].Retrieve(styleNumber, s, len, positions)) {
 			return;

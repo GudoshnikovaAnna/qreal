@@ -1,11 +1,29 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include "startWidget.h"
 
-#include <qrkernel/settingsManager.h>
+#include <QtCore/QSignalMapper>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QScrollArea>
 
-#include "dialogs/suggestToCreateDiagramDialog.h"
-#include "mainwindow/mainWindow.h"
-#include "suggestToCreateDiagramWidget.h"
-#include "recentProjectsListWidget.h"
+#include <qrkernel/settingsManager.h>
+#include <qrgui/plugins/pluginManager/editorManager.h>
+#include <qrgui/plugins/pluginManager/interpreterEditorManager.h>
+#include <qrgui/plugins/pluginManager/proxyEditorManager.h>
+
+#include "mainWindow/mainWindow.h"
 #include "styledButton.h"
 #include "circleWidget.h"
 #include "brandManager/brandManager.h"
@@ -65,9 +83,10 @@ QWidget *StartWidget::createHeader()
 	appName->setStyleSheet(BrandManager::styles()->startTabLabelLevel1Style());
 
 	QLabel * const appLogo = new QLabel;
-	appLogo->setPixmap(QPixmap::fromImage(BrandManager::applicationLogo()));
-	appLogo->setScaledContents(true);
 	appLogo->setFixedSize(200, 100);
+	appLogo->setScaledContents(false);
+	appLogo->setPixmap(QPixmap::fromImage(BrandManager::applicationLogo()).scaled(appLogo->size()
+			, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 
 	QHBoxLayout * const headerLayout = new QHBoxLayout;
 	headerLayout->addWidget(appName);
@@ -83,7 +102,7 @@ QWidget *StartWidget::createHeader()
 
 QWidget *StartWidget::createRecentProjectsWidget()
 {
-	QString const recentProjects = SettingsManager::value("recentProjects").toString();
+	const QString recentProjects = SettingsManager::value("recentProjects").toString();
 	if (recentProjects.isEmpty() || mMainWindow->editorManager().editors().isEmpty()) {
 		return nullptr;
 	}
@@ -100,16 +119,16 @@ QWidget *StartWidget::createProjectsManagementWidget()
 	mProjectsManagementLayout->addStretch();
 
 	mOpenProjectButton = new StyledButton(tr("Open existing project")
-			, ":icons/startTab/open.svg");
+			, ":/mainWindow/images/startTab/open.svg");
 	connect(mOpenProjectButton, &QPushButton::clicked, this, &StartWidget::openExistingProject);
 	mProjectsManagementLayout->addWidget(mOpenProjectButton);
 
-	Id const theOnlyDiagram = mMainWindow->editorManager().theOnlyDiagram();
+	const Id theOnlyDiagram = mMainWindow->editorManager().theOnlyDiagram();
 	if (!theOnlyDiagram.isNull()) {
-		Id const editor = mMainWindow->editorManager().editors()[0];
-		QString const diagramIdString = mMainWindow->editorManager().diagramNodeNameString(editor, theOnlyDiagram);
+		const Id editor = mMainWindow->editorManager().editors()[0];
+		const QString diagramIdString = mMainWindow->editorManager().diagramNodeNameString(editor, theOnlyDiagram);
 
-		mNewProjectButton = new StyledButton(tr("New project"), ":icons/startTab/open.svg");
+		mNewProjectButton = new StyledButton(tr("New project"), ":/mainWindow/images/startTab/new.svg");
 		mProjectsManagementLayout->addWidget(mNewProjectButton);
 
 		QSignalMapper *newProjectMapper = new QSignalMapper(this);
@@ -126,9 +145,9 @@ QWidget *StartWidget::createProjectsManagementWidget()
 	}
 
 	mOpenInterpreterButton = new StyledButton(tr("Open interpreted diagram")
-			, ":icons/startTab/openInterpreted.svg");
+			, ":/mainWindow/images/startTab/openInterpreted.svg");
 	mCreateInterpreterButton = new StyledButton(tr("Create interpreted diagram")
-			, ":icons/startTab/createInterpreted.svg");
+			, ":/mainWindow/images/startTab/createInterpreted.svg");
 	connect(mOpenInterpreterButton, SIGNAL(clicked()), this, SLOT(openInterpretedDiagram()));
 	connect(mCreateInterpreterButton, SIGNAL(clicked()), this, SLOT(createInterpretedDiagram()));
 
@@ -142,7 +161,7 @@ QWidget *StartWidget::createProjectsManagementWidget()
 	return result;
 }
 
-void StartWidget::openRecentProject(QString const &fileName)
+void StartWidget::openRecentProject(const QString &fileName)
 {
 	mProjectManager->open(fileName);
 }
@@ -152,12 +171,12 @@ void StartWidget::openExistingProject()
 	mProjectManager->suggestToOpenExisting();
 }
 
-void StartWidget::createProjectWithDiagram(QString const &idString)
+void StartWidget::createProjectWithDiagram(const QString &idString)
 {
 	mMainWindow->createProject(idString);
 }
 
-QLayout *StartWidget::createRecentProjectsList(QString const &recentProjects)
+QLayout *StartWidget::createRecentProjectsList(const QString &recentProjects)
 {
 	QVBoxLayout * const mainLayout = new QVBoxLayout;
 	QVBoxLayout * const recentProjectsLayout = new QVBoxLayout;
@@ -180,8 +199,8 @@ QLayout *StartWidget::createRecentProjectsList(QString const &recentProjects)
 	connect(projectNameMapper, SIGNAL(mapped(QString)), this, SLOT(openRecentProject(QString)));
 
 	int i = 0;
-	for (QString const &project : recentProjects.split(";", QString::SkipEmptyParts)) {
-		QString const name = project.split("/").last().split("\\").last();
+	for (const QString &project : recentProjects.split(";", QString::SkipEmptyParts)) {
+		const QString name = project.split("/").last().split("\\").last();
 		QPushButton * const projectItem = new StyledButton(name);
 		projectItem->setToolTip(project);
 		recentProjectsLayout->addWidget(projectItem);
@@ -200,14 +219,14 @@ QLayout *StartWidget::createRecentProjectsList(QString const &recentProjects)
 
 QWidget *StartWidget::createPluginsList()
 {
-	QWidget * const circleWidget = new CircleWidget(QSize(70, 70), ":/icons/startTab/new.svg");
+	QWidget * const circleWidget = new CircleWidget(QSize(70, 70), ":/mainWindow/images/startTab/new.svg");
 	circleWidget->setStyleSheet(BrandManager::styles()->startTabButtonStyle());
 
 	QVBoxLayout * const innerLayout = new QVBoxLayout;
 	innerLayout->addStretch();
-	foreach (Id const &editor, mMainWindow->editorManager().editors()) {
-		Id const editorTmpId = Id::loadFromString("qrm:/" + editor.editor());
-		foreach (Id const &diagram, mMainWindow->editorManager().diagrams(editorTmpId)) {
+	foreach (const Id &editor, mMainWindow->editorManager().editors()) {
+		const Id editorTmpId = Id::loadFromString("qrm:/" + editor.editor());
+		foreach (const Id &diagram, mMainWindow->editorManager().diagrams(editorTmpId)) {
 			QWidget * const pluginWidget = createPluginButton(editor, diagram, circleWidget);
 			innerLayout->addWidget(pluginWidget);
 		}
@@ -241,12 +260,12 @@ QWidget *StartWidget::createPluginsList()
 	return result;
 }
 
-QWidget *StartWidget::createPluginButton(Id const &editor, Id const &diagram, QWidget * const bindedImage)
+QWidget *StartWidget::createPluginButton(const Id &editor, const Id &diagram, QWidget * const bindedImage)
 {
-	EditorManagerInterface const &editorManagerInterface = mMainWindow->editorManager();
+	const EditorManagerInterface &editorManagerInterface = mMainWindow->editorManager();
 
-	QString const diagramName = editorManagerInterface.diagramName(editor.editor(), diagram.diagram());
-	QString const diagramNodeName = editorManagerInterface.diagramNodeName(editor.editor(), diagram.diagram());
+	const QString diagramName = editorManagerInterface.diagramName(editor.editor(), diagram.diagram());
+	const QString diagramNodeName = editorManagerInterface.diagramNodeName(editor.editor(), diagram.diagram());
 
 	if (diagramNodeName.isEmpty()) {
 		return nullptr;
@@ -269,15 +288,15 @@ QWidget *StartWidget::createPluginButton(Id const &editor, Id const &diagram, QW
 void StartWidget::openInterpretedDiagram()
 {
 	hide();
-	QString const fileName = mProjectManager->openFileName(tr("Select file with metamodel to open"));
+	const QString fileName = mProjectManager->openFileName(tr("Select file with metamodel to open"));
 	ProxyEditorManager &editorManagerProxy = mMainWindow->editorManagerProxy();
 
-	if (!fileName.isEmpty() && mProjectManager->open(fileName)) {
+	if (!fileName.isEmpty()) {
 		editorManagerProxy.setProxyManager(new InterpreterEditorManager(fileName));
 		QStringList interpreterDiagramsList;
-		foreach (Id const &editor, editorManagerProxy.editors()) {
-			foreach (Id const &diagram, editorManagerProxy.diagrams(editor)) {
-				QString const diagramNodeName = editorManagerProxy.diagramNodeName(editor.editor(), diagram.diagram());
+		foreach (const Id &editor, editorManagerProxy.editors()) {
+			foreach (const Id &diagram, editorManagerProxy.diagrams(editor)) {
+				const QString diagramNodeName = editorManagerProxy.diagramNodeName(editor.editor(), diagram.diagram());
 				if (diagramNodeName.isEmpty()) {
 					continue;
 				}
@@ -287,10 +306,12 @@ void StartWidget::openInterpretedDiagram()
 			}
 		}
 
-		foreach (QString const &interpreterIdString, interpreterDiagramsList) {
+		mMainWindow->initInterpretedPlugins();
+
+		foreach (const QString &interpreterIdString, interpreterDiagramsList) {
 			// TODO: ???
-			mMainWindow->models()->repoControlApi().exterminate();
-			mMainWindow->models()->reinit();
+			mMainWindow->models().repoControlApi().exterminate();
+			mMainWindow->models().reinit();
 			mMainWindow->loadPlugins();
 			mMainWindow->createDiagram(interpreterIdString);
 		}
@@ -316,21 +337,29 @@ void StartWidget::createInterpretedDiagram()
 	if (ok) {
 		QPair<Id, Id> editorAndDiagram = editorManagerProxy.createEditorAndDiagram(name);
 		mMainWindow->addEditorElementsToPalette(editorAndDiagram.first, editorAndDiagram.second);
-		mMainWindow->models()->repoControlApi().exterminate();
-		mMainWindow->models()->reinit();
+		mMainWindow->models().repoControlApi().exterminate();
+		mMainWindow->models().reinit();
 		mMainWindow->loadPlugins();
+		mMainWindow->initInterpretedPlugins();
 	} else {
 		show();
 		editorManagerProxy.setProxyManager(new EditorManager());
 	}
 }
 
-void StartWidget::setVisibleForInterpreterButton(bool const visible)
+void StartWidget::setVisibleForInterpreterButton(const bool visible)
 {
-	mOpenInterpreterButton->setVisible(visible);
-	mCreateInterpreterButton->setVisible(visible);
+	if (!visible) {
+		/// @todo: For some reason setVisible on interpreter buttons still leaves them visible.
+		/// This surely can be fixed and then setVisible(visible) call must be restored,
+		/// but for now working it arround...
+		delete mOpenInterpreterButton;
+		delete mCreateInterpreterButton;
+		mOpenInterpreterButton = nullptr;
+		mCreateInterpreterButton = nullptr;
+	}
 
-	int const editorsCount = mMainWindow->editorManager().editors().count();
+	const int editorsCount = mMainWindow->editorManager().editors().count();
 	QList<QPushButton *> toCentralize;
 	bool needLayoutHorizontally = false;
 	if (visible) {
@@ -368,7 +397,7 @@ void StartWidget::centralizeButton(QPushButton * const styledButton)
 	styledButton->update();
 
 	mProjectsManagementLayout->setAlignment(styledButton, Qt::AlignVCenter);
-	int const index = mProjectsManagementLayout->indexOf(styledButton);
+	const int index = mProjectsManagementLayout->indexOf(styledButton);
 	mProjectsManagementLayout->setStretch(index, 10000);
 }
 

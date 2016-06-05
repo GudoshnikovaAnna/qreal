@@ -1,18 +1,32 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include "xmlParser.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QUuid>
 #include <QtCore/QPointF>
-#include <QtCore/QProcess>
+#include <QtCore/QDir>
 #include <QtWidgets/QMessageBox>
 #include <QtGui/QPolygonF>
 #include <QtXml/QDomDocument>
 
 #include "math.h"
 
-#include "../../../qrrepo/repoApi.h"
-#include "../../../qrutils/xmlUtils.h"
-#include "../../../qrkernel/exception/exception.h"
+#include <qrrepo/repoApi.h>
+#include <qrutils/xmlUtils.h>
+#include <qrkernel/exception/exception.h>
 
 using namespace qReal;
 using namespace metaEditor;
@@ -119,7 +133,9 @@ void XmlParser::loadIncludeList(const QString &fileName)
 	QStringList includeList = getIncludeList(fileName);
 	if (includeList.isEmpty())
 		return;
-	if (QMessageBox::question(NULL, QObject::tr("loading.."),"Do you want to load connected metamodels?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+	if (QMessageBox::question(nullptr, QObject::tr("loading.."),"Do you want to load connected metamodels?"
+			, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+	{
 		foreach (QString const &include, includeList) {
 			if (!containsName(include))
 				parseFile(include);
@@ -134,6 +150,7 @@ bool XmlParser::containsName(const QString &name)
 		if (mApi.name(id) == name)
 			return true;
 	}
+
 	return false;
 }
 
@@ -150,7 +167,8 @@ Id XmlParser::getPackageId()
 	return packageId;
 }
 
-void XmlParser::initMetamodel(const QDomDocument &document, const QString &directoryName, const QString &baseName, const QString &pathToRoot, const Id &id)
+void XmlParser::initMetamodel(const QDomDocument &document, const QString &directoryName, const QString &baseName
+		, const QString &pathToRoot, const Id &id)
 {
 	QString fileBaseName = baseName;
 
@@ -165,6 +183,7 @@ void XmlParser::initMetamodel(const QDomDocument &document, const QString &direc
 		includeListString += include.text() + ", ";
 	}
 	setStandartConfigurations(metamodelId, id, "Empty_" + fileBaseName, "");
+	mApi.setProperty(metamodelId, "version", document.documentElement().attribute("version"));
 	mApi.setProperty(metamodelId, "include", includeListString);
 	mApi.setProperty(metamodelId, "name of the directory", directoryName);
 	mApi.setProperty(metamodelId, "relative path to QReal Source Files", pathToRoot);
@@ -306,20 +325,20 @@ void XmlParser::initImport(const QDomElement &import, const Id &diagramId)
 	}
 }
 
-void XmlParser::setEnumAttributes(const QDomElement &enumElement, const Id &enumId)
+void XmlParser::setEnumAttributes(QDomElement const &enumElement, Id const &enumId)
 {
-	QDomNodeList values = enumElement.childNodes();
+	QDomNodeList const values = enumElement.childNodes();
 
 	for (int i = 0; i < values.length(); ++i) {
 		QDomElement value = values.at(i).toElement();
 		if (value.tagName() == "value"){
-			Id valueId("MetaEditor", "MetaEditor", "MetaEntityValue",
-					QUuid::createUuid().toString());
+			Id const valueId("MetaEditor", "MetaEditor", "MetaEntityValue"
+					, QUuid::createUuid().toString());
 
 			setStandartConfigurations(valueId, enumId, value.text(),
 					value.attribute("displayedName", ""));
 
-			mApi.setProperty(valueId, "valueName", value.text());
+			mApi.setProperty(valueId, "valueName", value.attribute("name", ""));
 		}
 	}
 }
@@ -372,8 +391,6 @@ void XmlParser::setNodeConfigurations(const QDomElement &tag, const Id &nodeId)
 			setConnections(attribute, nodeId);
 		else if (attribute.tagName() == "usages")
 			setUsages(attribute, nodeId);
-		else if (attribute.tagName() == "pin")
-			setPin(nodeId);
 		else if (attribute.tagName() == "action")
 			setAction(nodeId);
 		else if (attribute.tagName() == "bonusContextMenuFields")
@@ -562,11 +579,6 @@ void XmlParser::setPossibleEdges(const QDomElement &element, const Id &elementId
 		if (possibleEdge.tagName() == "possibleEdge")
 			initPossibleEdge(possibleEdge, elementId);
 	}
-}
-
-void XmlParser::setPin(const Id &elementId)
-{
-	mApi.setProperty(elementId, "isPin", "true");
 }
 
 void XmlParser::setAction(const Id &elementId)

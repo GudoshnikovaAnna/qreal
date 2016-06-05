@@ -41,6 +41,8 @@
 
 #include <QProxyStyle>
 
+#include "thirdPartyDeclSpec.h"
+
 /**
 * Modern Qt style for Windows.
 *
@@ -49,7 +51,7 @@
 * windows and toolboxes. The color scheme used by this style is
 * automatically adjusted to system settings.
 */
-class WindowsModernStyle : public QProxyStyle
+class QRGUI_THIRDPARTY_EXPORT WindowsModernStyle : public QProxyStyle
 {
 	Q_OBJECT
 public:
@@ -75,7 +77,7 @@ public: // overrides
 	int pixelMetric( PixelMetric metric, const QStyleOption* option, const QWidget* widget ) const;
 
 	int styleHint( StyleHint hint, const QStyleOption* option, const QWidget* widget,
-		QStyleHintReturn* returnData = NULL ) const;
+		QStyleHintReturn* returnData = nullptr ) const;
 
 	QSize sizeFromContents( ContentsType type, const QStyleOption* option,
 		const QSize& contentsSize, const QWidget* widget ) const;

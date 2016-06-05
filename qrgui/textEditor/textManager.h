@@ -1,80 +1,102 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #pragma once
 
 #include <QtCore/QObject>
 #include <QtCore/QMap>
 #include <QtCore/QMultiHash>
 
-#include "textManagerInterface.h"
-#include "view/editorView.h"
-#include "toolPluginInterface/systemEventsInterface.h"
+#include "qrgui/textEditor/textEditorDeclSpec.h"
+#include "qrgui/textEditor/textManagerInterface.h"
 
 namespace qReal {
 
-class TextManager : public TextManagerInterface
+namespace gui {
+class MainWindowInterpretersInterface;
+}
+
+namespace text {
+
+class QRGUI_TEXT_EDITOR_EXPORT TextManager : public TextManagerInterface
 {
 	Q_OBJECT
 
 public:
-	TextManager(SystemEventsInterface *systemEvents, MainWindow *mainWindow);
+	TextManager(SystemEvents &systemEvents, gui::MainWindowInterpretersInterface &mainWindow);
 
 	/// Reads code source file and create new QScintillaTextEdit associated with this file (rather with filepath)
-	bool openFile(QString const &filePath, QString const &genName);
+	bool openFile(const QString &filePath, const QString &genName, const LanguageInfo &language);
 
 	/// Remove all info about filePath (including QScintillaTextEdit associated with it)
-	bool closeFile(QString const &filePath);
+	bool closeFile(const QString &filePath);
 
-	void changeFilePath(QString const &from, QString const &to);
+	void changeFilePath(const QString &from, const QString &to);
 
 	/// Binds diagram with another code source file.
-	bool bindCode(EditorView* diagram,  QString const &filePath);
+	bool bindCode(const Id &diagram, const QString &filePath);
 
-	bool unbindCode(QString const &filePath);
-	bool unbindCode(gui::QScintillaTextEdit *code);
-	gui::QScintillaTextEdit *code(QString const &filePath);
-	QList<gui::QScintillaTextEdit *> code(EditorView *diagram);
-	bool contains(QString const &filePath);
-	bool removeDiagram(EditorView *diagram);
-	EditorView *diagram(gui::QScintillaTextEdit *code);
-	QString path(gui::QScintillaTextEdit *code);
-	bool isDefaultPath(QString const &path);
-	bool isModified(QString const &path);
-	bool isModifiedEver(QString const &path);
-	void addExtension(QString const &name, QString const &description);
-	QString extDescription(QString const &name);
+	bool unbindCode(const QString &filePath);
+	bool unbindCode(text::QScintillaTextEdit *code);
+	text::QScintillaTextEdit *code(const QString &filePath) const;
+	QList<text::QScintillaTextEdit *> code(const Id &diagram) const;
+	bool contains(const QString &filePath) const;
+	bool removeDiagram(const Id &diagram);
+	Id diagram(text::QScintillaTextEdit *code) const;
+	QString path(text::QScintillaTextEdit *code) const;
+	bool isDefaultPath(const QString &path) const;
+	bool isModified(const QString &path) const;
+	bool isModifiedEver(const QString &path) const;
 
-	/// Opens new tab with text editor and shows a text in it
+	/// Opens new tab with file created by some generator in text editor and shows a text in it
 	/// @param fileInfo A filepath to file with text
-	void showInTextEditor(QFileInfo const &fileInfo, QString const &genName);
+	/// @param genName A name of generator which created this file
+	void showInTextEditor(const QFileInfo &fileInfo, const QString &genName, const LanguageInfo &language);
+
+	/// Opens new tab with file
+	/// @param fileInfo A filepath to file with text
+	void showInTextEditor(const QFileInfo &fileInfo, const LanguageInfo &language);
 
 	/// Saves text from tab to another or same file
 	/// @param saveAs Defines what to do: save to the same file or in another
 	bool saveText(bool saveAs);
 
-	QString generatorName(QString const &filepath);
+	QString generatorName(const QString &filepath) const;
 
 private slots:
-	void setModified(gui::QScintillaTextEdit *code);
-	void onTabClosed(QFileInfo const &file);
+	void setModified(text::QScintillaTextEdit *code, bool modified = true);
+	void onTabClosed(const QFileInfo &file);
 
 private:
-	QMap<QString, gui::QScintillaTextEdit *> mText;
-	QMap<gui::QScintillaTextEdit *, QString> mPath;
+	QMap<QString, text::QScintillaTextEdit *> mText;
+	QMap<text::QScintillaTextEdit *, QString> mPath;
 
 	/// If default path - true.
 	QMap<QString, bool> mPathType;
 
-	QMap<QString, QString> mGenName;
+	/// Contains names of generator, which generate each сщfile
+	QMap<QString, QString> mGeneratorName;
 
 	/// First - was modified once and more (with save), second - was modified recently and not saved
 	QMap<QString, QPair<bool, bool> > mModified;
 
 	/// mCodeTabManager - Map that keeps pairs of opened tabs and their code areas.
-	QMultiHash<EditorView*, QString> mDiagramCodeManager;
+	QMultiHash<Id, QString> mDiagramCodeManager;
 
-	/// Contains info about file extensions (extension, description of extension). Need for save dialog.
-	QMap<QString, QString> mExtensions;
-	MainWindow *mMainWindow;
-	SystemEventsInterface *mSystemEvents;
+	gui::MainWindowInterpretersInterface &mMainWindow;
+	SystemEvents &mSystemEvents;
 };
 
+}
 }

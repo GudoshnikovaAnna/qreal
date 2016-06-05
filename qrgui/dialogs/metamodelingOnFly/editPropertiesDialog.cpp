@@ -1,3 +1,17 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include <QtWidgets/QMessageBox>
 
 #include "editPropertiesDialog.h"
@@ -7,13 +21,17 @@
 
 using namespace qReal;
 
-EditPropertiesDialog::EditPropertiesDialog(EditorManagerInterface &interpreterEditorManager
-		, Id const &id, QWidget *parent)
-		: QDialog(parent)
-		, mUi(new Ui::EditPropertiesDialog)
-		, mInterperterEditorManager(interpreterEditorManager)
-		, mId(id)
-		, mMode(addNew)
+EditPropertiesDialog::EditPropertiesDialog(const EditorManagerInterface &interpreterEditorManager
+		, qrRepo::LogicalRepoApi &api
+		, const Id &id
+		, QWidget *parent)
+	: QDialog(parent)
+	, mUi(new Ui::EditPropertiesDialog)
+	, mInterpreterEditorManager(interpreterEditorManager)
+	, mId(id)
+	, mMode(addNew)
+	, mApi(api)
+	, mElementsOnDiagram(IdList())
 {
 	mUi->setupUi(this);
 	connect(mUi->okPushButton, &QPushButton::clicked, this, &EditPropertiesDialog::okButtonClicked);
@@ -26,20 +44,20 @@ EditPropertiesDialog::~EditPropertiesDialog()
 
 void EditPropertiesDialog::initDefaultValues()
 {
-	mUi->attributeTypeEdit->setText(mInterperterEditorManager.typeName(mId, mPropertyName));
-	mUi->defaultValueEdit->setText(mInterperterEditorManager.defaultPropertyValue(mId, mPropertyName));
-	mUi->displayedNameEdit->setText(mInterperterEditorManager.propertyDisplayedName(mId, mPropertyName));
+	mUi->attributeTypeEdit->setText(mInterpreterEditorManager.typeName(mId, mPropertyName));
+	mUi->defaultValueEdit->setText(mInterpreterEditorManager.defaultPropertyValue(mId, mPropertyName));
+	mUi->displayedNameEdit->setText(mInterpreterEditorManager.propertyDisplayedName(mId, mPropertyName));
 }
 
 void EditPropertiesDialog::messageBoxCancel()
 {
-	mUi->attributeTypeEdit->setText(mInterperterEditorManager.typeName(mId, mPropertyName));
-	mUi->defaultValueEdit->setText(mInterperterEditorManager.defaultPropertyValue(mId, mPropertyName));
+	mUi->attributeTypeEdit->setText(mInterpreterEditorManager.typeName(mId, mPropertyName));
+	mUi->defaultValueEdit->setText(mInterpreterEditorManager.defaultPropertyValue(mId, mPropertyName));
 }
 
 void EditPropertiesDialog::updateProperties()
 {
-	mInterperterEditorManager.updateProperties(
+	mInterpreterEditorManager.updateProperties(
 			mId
 			, mPropertyName
 			, mUi->attributeTypeEdit->text()
@@ -47,8 +65,8 @@ void EditPropertiesDialog::updateProperties()
 			, mUi->displayedNameEdit->text()
 			);
 
-	if (mPropertyItem != NULL) {
-		mPropertyItem->setText(mInterperterEditorManager.propertyDisplayedName(mId, mPropertyName));
+	if (mPropertyItem != nullptr) {
+		mPropertyItem->setText(mInterpreterEditorManager.propertyDisplayedName(mId, mPropertyName));
 	}
 
 	done(QDialog::Accepted);
@@ -57,7 +75,7 @@ void EditPropertiesDialog::updateProperties()
 void EditPropertiesDialog::acceptPropertyModifications()
 {
 	if (mPropertyName.isEmpty()) {
-		IdList const sameNameProperties = mInterperterEditorManager.propertiesWithTheSameName(mId, ""
+		const IdList sameNameProperties = mInterpreterEditorManager.propertiesWithTheSameName(mId, ""
 				, mUi->displayedNameEdit->text());
 		if (sameNameProperties.isEmpty()) {
 			mPropertyName = mUi->displayedNameEdit->text();
@@ -65,11 +83,17 @@ void EditPropertiesDialog::acceptPropertyModifications()
 			mPropertyName = mUi->displayedNameEdit->text() + "_" + sameNameProperties.count();
 		}
 
-		mInterperterEditorManager.addProperty(mId, mPropertyName);
+		mInterpreterEditorManager.addProperty(mId, mPropertyName);
+		// set property default value for elements on diagram
+		for (const auto &elementOnDiagram: mElementsOnDiagram) {
+			mApi.setProperty(elementOnDiagram, mPropertyName, mUi->defaultValueEdit->text());
+		}
+
+		mElementsOnDiagram.clear();
 	}
 
 	if (mMode == editExisting
-			&& mInterperterEditorManager.typeName(mId, mPropertyName) != mUi->attributeTypeEdit->text()
+			&& mInterpreterEditorManager.typeName(mId, mPropertyName) != mUi->attributeTypeEdit->text()
 			)
 	{
 		// TODO: Remove connects.
@@ -94,11 +118,11 @@ void EditPropertiesDialog::okButtonClicked()
 	if (mUi->attributeTypeEdit->text().isEmpty() || mUi->displayedNameEdit->text().isEmpty()) {
 		QMessageBox::critical(this, tr("Error"), tr("All required properties should be filled!"));
 	} else {
-		IdList const propertiesWithTheSameNameList = mInterperterEditorManager.propertiesWithTheSameName(mId
+		const IdList propertiesWithTheSameNameList = mInterpreterEditorManager.propertiesWithTheSameName(mId
 				, mPropertyName, mUi->displayedNameEdit->text());
 		if (!propertiesWithTheSameNameList.isEmpty()) {
 			hide();
-			mRestorePropertiesDialog = new RestorePropertiesDialog(this, mInterperterEditorManager);
+			mRestorePropertiesDialog = new RestorePropertiesDialog(this, mInterpreterEditorManager);
 			mRestorePropertiesDialog->fillSameNamePropertiesTW(propertiesWithTheSameNameList
 					, mUi->displayedNameEdit->text());
 			mRestorePropertiesDialog->setWindowTitle(tr("Restore properties"));
@@ -116,13 +140,15 @@ void EditPropertiesDialog::okButtonClicked()
 
 void EditPropertiesDialog::changeProperty(
 		QListWidgetItem *propertyItem
-		, QString const &propertyName
-		, QString const &propertyDisplayedName
+		, const QString &propertyName
+		, const QString &propertyDisplayedName
+		, qReal::IdList *elementsOnDiagram
 		)
 {
-	//mPropertyName = mInterperterEditorManager.propertyNameByDisplayedName(mId, propertyDisplayedName);
+	//mPropertyName = mInterpreterEditorManager.propertyNameByDisplayedName(mId, propertyDisplayedName);
 	mPropertyName = propertyName;
 	mPropertyItem = propertyItem;
+	mElementsOnDiagram = *elementsOnDiagram;
 
 	if (propertyName.isEmpty()) {
 		setWindowTitle(tr("Add new property"));

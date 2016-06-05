@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>QReal</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="qrgui.qrc">
-    <normaloff>:/icons/qreal.png</normaloff>:/icons/qreal.png</iconset>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout">
     <property name="leftMargin">
@@ -45,7 +41,7 @@
      <x>0</x>
      <y>0</y>
      <width>843</width>
-     <height>19</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -67,12 +63,19 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="menuPanels">
+     <property name="title">
+      <string>Panels</string>
+     </property>
+    </widget>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
     <addaction name="actionZoom_In"/>
     <addaction name="actionZoom_Out"/>
     <addaction name="separator"/>
     <addaction name="actionShowSplash"/>
+    <addaction name="separator"/>
+    <addaction name="menuPanels"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -88,10 +91,13 @@
      <string>&amp;Settings</string>
     </property>
     <addaction name="actionPreferences"/>
+    <addaction name="separator"/>
     <addaction name="actionShow_grid"/>
     <addaction name="actionShow_alignment"/>
     <addaction name="actionSwitch_on_grid"/>
     <addaction name="actionSwitch_on_alignment"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_all_text"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -129,7 +135,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionPrint"/>
    <addaction name="actionNewProject"/>
    <addaction name="actionNew_Diagram"/>
    <addaction name="actionOpen"/>
@@ -144,8 +149,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>80</width>
-     <height>211</height>
+     <width>89</width>
+     <height>217</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -274,24 +279,18 @@
    <widget class="QWidget" name="logicalModelDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-	  <widget class="qReal::gui::ModelExplorer" name="logicalModelExplorer">
+      <widget class="qReal::gui::ModelExplorer" name="logicalModelExplorer" native="true">
        <property name="contextMenuPolicy">
         <enum>Qt::ActionsContextMenu</enum>
        </property>
        <property name="acceptDrops">
         <bool>true</bool>
        </property>
-       <property name="dragEnabled">
+       <property name="dragEnabled" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropOverwriteMode" stdset="0">
         <bool>false</bool>
-       </property>
-       <property name="dragDropOverwriteMode">
-        <bool>false</bool>
-       </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::DragDrop</enum>
-       </property>
-       <property name="defaultDropAction">
-        <enum>Qt::IgnoreAction</enum>
        </property>
       </widget>
      </item>
@@ -307,8 +306,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>102</width>
-     <height>127</height>
+     <width>107</width>
+     <height>132</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -324,13 +323,13 @@
     <bool>false</bool>
    </property>
    <property name="windowTitle">
-    <string>Output</string>
+    <string>Errors</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="errorDockWidgetContents">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="ErrorListWidget" name="errorListWidget"/>
      </item>
@@ -347,7 +346,7 @@
    <widget class="QWidget" name="graphicalModelDockWidgetContents">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-	  <widget class="qReal::gui::ModelExplorer" name="graphicalModelExplorer">
+      <widget class="qReal::gui::ModelExplorer" name="graphicalModelExplorer" native="true">
        <property name="contextMenuPolicy">
         <enum>Qt::ActionsContextMenu</enum>
        </property>
@@ -396,7 +395,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="PropertyEditorView" name="propertyEditor" native="true">
+      <widget class="qReal::gui::editor::PropertyEditorView" name="propertyEditor" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -408,7 +407,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QToolBar" name="interpreterToolbar">
+  <widget class="QToolBar" name="interpretersToolbar">
    <property name="windowTitle">
     <string>Interpreter Toolbar</string>
    </property>
@@ -421,7 +420,7 @@
   </widget>
   <widget class="QToolBar" name="generatorsToolbar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Generators Toolbar</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -440,8 +439,8 @@
   </action>
   <action name="actionZoom_In">
    <property name="icon">
-    <iconset resource="qrgui.qrc">
-     <normaloff>:/icons/zoomin.png</normaloff>:/icons/zoomin.png</iconset>
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/zoomin.png</normaloff>:/mainWindow/images/zoomin.png</iconset>
    </property>
    <property name="text">
     <string>Zoom In</string>
@@ -452,8 +451,8 @@
   </action>
   <action name="actionZoom_Out">
    <property name="icon">
-    <iconset resource="qrgui.qrc">
-     <normaloff>:/icons/zoomout.png</normaloff>:/icons/zoomout.png</iconset>
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/zoomout.png</normaloff>:/mainWindow/images/zoomout.png</iconset>
    </property>
    <property name="text">
     <string>Zoom Out</string>
@@ -483,8 +482,8 @@
   </action>
   <action name="actionPrint">
    <property name="icon">
-    <iconset resource="qrgui.qrc">
-     <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/print.png</normaloff>:/mainWindow/images/print.png</iconset>
    </property>
    <property name="text">
     <string>Print</string>
@@ -495,17 +494,6 @@
     <string>Export to SVG</string>
    </property>
   </action>
-  <action name="actionDeleteFromDiagram">
-   <property name="text">
-    <string>Delete</string>
-   </property>
-   <property name="shortcut">
-    <string>Del</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
-   </property>
-  </action>
   <action name="openNewTab">
    <property name="text">
     <string>Open in new tab</string>
@@ -514,6 +502,9 @@
   <action name="actionHelp">
    <property name="text">
     <string>Small Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -538,6 +529,10 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/save.svg</normaloff>:/mainWindow/images/save.svg</iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -554,6 +549,10 @@
    </property>
   </action>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/open.svg</normaloff>:/mainWindow/images/open.svg</iconset>
+   </property>
    <property name="text">
     <string>Open...</string>
    </property>
@@ -625,8 +624,8 @@
   </action>
   <action name="actionGenerate_and_build">
    <property name="icon">
-    <iconset resource="qrgui.qrc">
-     <normaloff>:/icons/build.png</normaloff>:/icons/build.png</iconset>
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/build.png</normaloff>:/mainWindow/images/build.png</iconset>
    </property>
    <property name="text">
     <string>Generate and build</string>
@@ -663,6 +662,10 @@
    </property>
   </action>
   <action name="actionNew_Diagram">
+   <property name="icon">
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/newDiagram.svg</normaloff>:/mainWindow/images/newDiagram.svg</iconset>
+   </property>
    <property name="text">
     <string>New Diagram</string>
    </property>
@@ -671,6 +674,10 @@
    </property>
   </action>
   <action name="actionFullscreen">
+   <property name="icon">
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/fullScreen.svg</normaloff>:/mainWindow/images/fullScreen.svg</iconset>
+   </property>
    <property name="text">
     <string>Fullscreen Mode</string>
    </property>
@@ -682,6 +689,10 @@
    </property>
   </action>
   <action name="actionNewProject">
+   <property name="icon">
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/newProject.svg</normaloff>:/mainWindow/images/newProject.svg</iconset>
+   </property>
    <property name="text">
     <string>New Project</string>
    </property>
@@ -717,54 +728,10 @@
     <string>Find and replace</string>
    </property>
   </action>
-  <action name="actionCutElementsOnDiagram">
-   <property name="text">
-    <string>Cut</string>
-   </property>
-   <property name="toolTip">
-    <string>Cut</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+X</string>
-   </property>
-  </action>
-  <action name="actionCopyElementsOnDiagram">
-   <property name="text">
-    <string>Copy</string>
-   </property>
-   <property name="toolTip">
-    <string>Copy</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionPasteOnDiagram">
-   <property name="text">
-    <string>Paste</string>
-   </property>
-   <property name="toolTip">
-    <string>Paste</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+V</string>
-   </property>
-  </action>
-  <action name="actionPasteReference">
-   <property name="text">
-    <string>Paste only graphical copy</string>
-   </property>
-   <property name="toolTip">
-    <string>Paste only graphical copy</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+V</string>
-   </property>
-  </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset resource="qrgui.qrc">
-     <normaloff>:/icons/undo.png</normaloff>:/icons/undo.png</iconset>
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/undo.png</normaloff>:/mainWindow/images/undo.png</iconset>
    </property>
    <property name="text">
     <string>Undo</string>
@@ -775,8 +742,8 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset resource="qrgui.qrc">
-     <normaloff>:/icons/redo.png</normaloff>:/icons/redo.png</iconset>
+    <iconset resource="mainWindow.qrc">
+     <normaloff>:/mainWindow/images/redo.png</normaloff>:/mainWindow/images/redo.png</iconset>
    </property>
    <property name="text">
     <string>Redo</string>
@@ -790,45 +757,66 @@
     <string>Export to XML</string>
    </property>
   </action>
+  <action name="actionShow_all_text">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show all text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+T</string>
+   </property>
+  </action>
+  <action name="actionHideBottomDocks">
+   <property name="text">
+    <string>Hide bottom docks</string>
+   </property>
+   <property name="toolTip">
+    <string>Hide bottom docks</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="0" margin="0"/>
  <customwidgets>
   <customwidget>
    <class>qReal::gui::PaletteTree</class>
    <extends>QToolBox</extends>
-   <header>mainwindow/palette/paletteTree.h</header>
+   <header>mainWindow/palette/paletteTree.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ErrorListWidget</class>
    <extends>QListWidget</extends>
-   <header>mainwindow/errorListWidget.h</header>
+   <header>mainWindow/errorListWidget.h</header>
   </customwidget>
   <customwidget>
    <class>PropertyEditorView</class>
    <extends>QWidget</extends>
-   <header>view/propertyEditorView.h</header>
+   <header>editor/propertyEditorView.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>MiniMap</class>
    <extends>QGraphicsView</extends>
-   <header>mainwindow/miniMap.h</header>
+   <header>mainWindow/miniMap.h</header>
   </customwidget>
   <customwidget>
    <class>qReal::gui::TabWidget</class>
    <extends>QWidget</extends>
-   <header>mainwindow/tabWidget.h</header>
+   <header>mainWindow/tabWidget.h</header>
   </customwidget>
   <customwidget>
    <class>qReal::gui::ModelExplorer</class>
    <extends>QWidget</extends>
-   <header>mainwindow/modelExplorer.h</header>
+   <header>mainWindow/modelExplorer.h</header>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="qrgui.qrc"/>
-  <include location="qrgui.qrc"/>
+  <include location="mainWindow.qrc"/>
  </resources>
  <connections/>
 </ui>

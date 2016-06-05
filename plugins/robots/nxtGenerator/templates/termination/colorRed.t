@@ -1,1 +1,0 @@
-ecrobot_term_nxtcolorsensor(@@PORT@@);

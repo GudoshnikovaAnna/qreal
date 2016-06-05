@@ -1,3 +1,17 @@
+/* Copyright 2007-2016 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include "graphicType.h"
 
 #include <QtCore/QDebug>
@@ -8,6 +22,8 @@
 #include "label.h"
 #include "diagram.h"
 #include "nameNormalizer.h"
+#include "nodeType.h"
+#include "edgeType.h"
 
 using namespace utils;
 
@@ -16,6 +32,19 @@ GraphicType::ContainerProperties::ContainerProperties()
 		, sizeOfChildrenForestalling(0), hasMovableChildren(true)
 		, minimizesToChildren(false), maximizesChildren(false)
 {
+}
+
+GraphicType::GeneralizationProperties::GeneralizationProperties(const QString &name, const QString &overrides)
+		: name(name)
+{
+	overridePorts = overrides.contains("ports", Qt::CaseInsensitive);
+	overrideLabels = overrides.contains("labels", Qt::CaseInsensitive);
+	overridePictures = overrides.contains("pictures", Qt::CaseInsensitive);
+	if (overrides.contains("all", Qt::CaseInsensitive)) {
+		overridePorts = true;
+		overrideLabels = true;
+		overridePictures = true;
+	}
 }
 
 GraphicType::ResolvingHelper::ResolvingHelper(bool &resolvingFlag)
@@ -47,9 +76,10 @@ void GraphicType::copyFields(GraphicType *type) const
 	type->mElement = mElement;
 	type->mGraphics = mGraphics;
 	type->mHeight = mHeight;
-	foreach (Label *label, mLabels) {
+	for (Label *label : mLabels) {
 		type->mLabels.append(new Label(*label));
 	}
+
 	type->mLogic = mLogic;
 	type->mParents = mParents;
 	type->mVisible = mVisible;
@@ -59,22 +89,37 @@ void GraphicType::copyFields(GraphicType *type) const
 	type->mExplosions = mExplosions;
 }
 
-bool GraphicType::init(QDomElement const &element, QString const &context)
+void GraphicType::copyLabels(GraphicType *parent)
+{
+	for (Label *label : parent->mLabels) {
+		mLabels.append(label->clone());
+	}
+}
+
+QList<Port *> GraphicType::ports() const
+{
+	return {};
+}
+
+bool GraphicType::init(const QDomElement &element, const QString &context)
 {
 	mElement = element;
 	if (Type::init(element, context)) {
 		mDescription = element.attribute("description", "");
+		mAbstract = element.attribute("abstract", "");
 		mLogic = element.firstChildElement("logic");
 		if (mLogic.isNull()) {
 			qDebug() << "ERROR: can't find logic tag of graphic type";
 			return false;
 		}
+
 		mGraphics = element.firstChildElement("graphics");
 		return initParents() && initProperties() && initDividability() && initContainers() && initAssociations()
 				&& initGraphics() && initLabels() && initPossibleEdges() && initPortTypes()
 				&& initCreateChildrenFromMenu() && initContainerProperties() && initBonusContextMenuFields()
 				&& initExplosions();
 	}
+
 	return false;
 }
 
@@ -84,29 +129,35 @@ bool GraphicType::initParents()
 	if (parentsElement.isNull()) {
 		return true;
 	}
+
 	for (QDomElement parentElement = parentsElement.firstChildElement("parent")
 			; !parentElement.isNull()
 			; parentElement = parentElement.nextSiblingElement("parent"))
 	{
-		QString const parentName = parentElement.attribute("parentName");
+		const QString parentName = parentElement.attribute("parentName");
 		if (parentName.isEmpty()) {
 			qDebug() << "Error: anonymous parent of node" << qualifiedName();
 			return false;
 		}
 
-		if (!mParents.contains(parentName)) {
-			mParents.append(parentName);
-		} else {
-			qDebug() << "ERROR: parent of node" << qualifiedName() << "duplicated";
-			return false;
+		const QString overrides = parentElement.attribute("overrides");
+
+		for (const auto &parent : mParents) {
+			if (parent.name == parentName) {
+				qDebug() << "ERROR: parent of node" << qualifiedName() << "duplicated";
+				return false;
+			}
 		}
+
+		mParents.append({parentName, overrides});
 	}
+
 	return true;
 }
 
 bool GraphicType::initProperties()
 {
-	QDomElement const propertiesElement = mLogic.firstChildElement("properties");
+	const QDomElement propertiesElement = mLogic.firstChildElement("properties");
 	if (propertiesElement.isNull()) {
 		return true;
 	}
@@ -126,8 +177,8 @@ bool GraphicType::initProperties()
 	return true;
 }
 
-bool GraphicType::initFieldList(QString const &listName, QString const &listElementName
-	, QStringList &resultingList, QString const &fieldName, bool const isNeedToNormalizeAtt) const
+bool GraphicType::initFieldList(const QString &listName, const QString &listElementName
+	, QStringList &resultingList, const QString &fieldName, const bool isNeedToNormalizeAtt) const
 {
 	QDomElement containerElement = mLogic.firstChildElement(listName);
 	if (containerElement.isNull()) {
@@ -158,10 +209,11 @@ bool GraphicType::initFieldList(QString const &listName, QString const &listElem
 			return false;
 		}
 	}
+
 	return true;
 }
 
-bool GraphicType::initTypeList(QString const &listName, QString const &listElementName
+bool GraphicType::initTypeList(const QString &listName, const QString &listElementName
 		, QStringList &resultingList) const
 {
 	return initFieldList(listName, listElementName, resultingList, "type", true);
@@ -233,8 +285,8 @@ bool GraphicType::initCreateChildrenFromMenu()
 
 bool GraphicType::initPossibleEdges()
 {
-	QString const listName = "possibleEdges";
-	QString const listElementName = "possibleEdge";
+	const QString listName = "possibleEdges";
+	const QString listElementName = "possibleEdge";
 
 	QDomElement containerElement = mLogic.firstChildElement(listName);
 	if (containerElement.isNull()) {
@@ -281,7 +333,7 @@ bool GraphicType::initPossibleEdges()
 
 bool GraphicType::initExplosions()
 {
-	QDomElement const explodesTo = mLogic.firstChildElement("explodesTo");
+	const QDomElement explodesTo = mLogic.firstChildElement("explodesTo");
 	if (explodesTo.isNull()) {
 		return true;
 	}
@@ -289,12 +341,12 @@ bool GraphicType::initExplosions()
 			; !targetElement.isNull()
 			; targetElement = targetElement.nextSiblingElement())
 	{
-		QString const targetName = targetElement.attribute("type");
+		const QString targetName = targetElement.attribute("type");
 		if (targetName.isEmpty()) {
 			return false;
 		}
-		bool const isReusable = targetElement.attribute("makeReusable", "false").toLower().trimmed() == "true";
-		bool const immediateLinkage
+		const bool isReusable = targetElement.attribute("makeReusable", "false").toLower().trimmed() == "true";
+		const bool immediateLinkage
 				= targetElement.attribute("requireImmediateLinkage", "false").toLower().trimmed() == "true";
 		mExplosions[targetName] = qMakePair(isReusable, immediateLinkage);
 	}
@@ -321,20 +373,21 @@ bool GraphicType::initLabels()
 
 bool GraphicType::addProperty(Property *property)
 {
-	QString const propertyName = property->name();
+	const QString propertyName = property->name();
 	if (mProperties.contains(propertyName)) {
-		// Множественное наследование может приводить к тому, что одно свойство
-		// может быть добавлено классу дважды (ромбовидное наследование, например).
-		// Pугаемся мы только тогда, когда тип, значение по умолчанию или что-то ещё
-		// у одноимённых свойств различны - тогда непонятно, что делать.
+		// This will automaticly dispose property in this branch.
+		QScopedPointer<Property> propertyDisposer(property);
+		Q_UNUSED(propertyDisposer)
+		/// @todo Good for overriding parent properties, but bad in multiple inheritance case
+		/// --- we can allow invalid rhomb inheritance.
 		if (mProperties[propertyName] != property && *mProperties[propertyName] != *property) {
-			qDebug() << "ERROR: property" << propertyName << "duplicated with different attributes";
-			delete property;
+			qWarning() << "Property" << propertyName << "duplicated with different attributes";
 			return false;
 		}
 	} else {
 		mProperties[propertyName] = property;
 	}
+
 	return true;
 }
 
@@ -352,48 +405,72 @@ bool GraphicType::resolve()
 	ResolvingHelper helper(mResolving);
 	Q_UNUSED(helper)
 
-	mParents.removeDuplicates();
+	/// @todo Ensure that parents are not duplicated.
 
-	foreach (QString const &parentName, mParents) {
+	for (const GeneralizationProperties &generalization : mParents) {
 		// Предки ищутся в "родном" контексте типа, так что если он был импортирован, ссылки не должны поломаться.
-		QString qualifiedParentName = parentName.contains("::") ? parentName : nativeContext() + "::" + parentName;
+		const QString qualifiedParentName = generalization.name.contains("::")
+				? generalization.name
+				: nativeContext() + "::" + generalization.name;
 
 		Type *parent = mDiagram->findType(qualifiedParentName);
-		if (parent == NULL) {
+		if (parent == nullptr) {
 			// В локальном контексте не нашлось, попробуем в глобальном
-			parent = mDiagram->findType(parentName);
-			if (parent == NULL) {
-				qDebug() << "ERROR: can't find parent" << parentName << "for" << qualifiedName();
+			parent = mDiagram->findType(generalization.name);
+			if (parent == nullptr) {
+				qDebug() << "ERROR: can't find parent" << generalization.name << "for" << qualifiedName();
 				return false;
 			}
 		}
 
 		if (parent->isResolving()) {
-			qDebug() << "ERROR: circular inheritance between" << parentName << "and" << qualifiedName();
+			qDebug() << "ERROR: circular inheritance between" << generalization.name << "and" << qualifiedName();
 			return false;
 		}
+
 		if (!parent->isResolved()) {
 			if (!parent->resolve()) {
 				return false;
 			}
 		}
-		foreach (Property *property, parent->properties().values()) {
+
+		for (Property *property : parent->properties().values()) {
 			if (!addProperty(property->clone())) {
 				return false;
 			}
 		}
 
-		GraphicType* gParent = dynamic_cast<GraphicType*>(parent);
-		if (gParent) {
-			foreach (PossibleEdge pEdge,gParent->mPossibleEdges) {
+		GraphicType* const graphicParent = dynamic_cast<GraphicType*>(parent);
+		if (graphicParent != nullptr) {
+			if (!generalization.overrideLabels) {
+				copyLabels(graphicParent);
+			}
+
+			if (!generalization.overridePictures) {
+				copyPictures(graphicParent);
+			}
+
+			NodeType* const nodeParent = dynamic_cast<NodeType*>(parent);
+			if (nodeParent != nullptr) {
+				if (!generalization.overridePorts) {
+					copyPorts(nodeParent);
+				}
+			}
+
+			for (PossibleEdge pEdge : graphicParent->mPossibleEdges) {
 				mPossibleEdges.append(qMakePair(pEdge.first,qMakePair(pEdge.second.first,name())));
 			}
-			foreach (QString const &element, gParent->mExplosions.keys()) {
+
+			for (const QString &element : graphicParent->mExplosions.keys()) {
 				if (!mExplosions.contains(element)) {
-					mExplosions[element] = gParent->mExplosions[element];
+					mExplosions[element] = graphicParent->mExplosions[element];
 				}
 			}
 		}
+	}
+
+	for (int i = 0; i < mLabels.size(); ++i) {
+		mLabels.value(i)->changeIndex(i + 1);
 	}
 
 	mResolvingFinished = true;
@@ -406,8 +483,21 @@ void GraphicType::generateNameMapping(OutFile &out)
 		QString diagramName = NameNormalizer::normalize(mDiagram->name());
 		QString normalizedName = NameNormalizer::normalize(qualifiedName());
 		QString actualDisplayedName = displayedName().isEmpty() ? name() : displayedName();
+		for (QPair<QString, QStringList> part : mDiagram->paletteGroups()) {
+			for (auto part2 : part.second) {
+				if (part2 == normalizedName && mAbstract == "true" ) {
+					qDebug() << "ERROR! Element" << qualifiedName() << "is abstract.";
+					return;
+				}
+			}
+		}
+
+		if (mAbstract == "true") {
+			return;
+		}
+
 		out() << "\tmElementsNameMap[\"" << diagramName << "\"][\"" << normalizedName
-				<< "\"] = QString::fromUtf8(\"" << actualDisplayedName << "\");\n";
+				<< "\"] = tr(\"" << actualDisplayedName << "\");\n";
 	}
 }
 
@@ -418,7 +508,7 @@ void GraphicType::generateDescriptionMapping(OutFile &out)
 			QString diagramName = NameNormalizer::normalize(mDiagram->name());
 			QString normalizedName = NameNormalizer::normalize(qualifiedName());
 			out() << "\tmElementsDescriptionMap[\"" << diagramName << "\"][\""
-					<< normalizedName << "\"] = QString::fromUtf8(\"" << mDescription << "\");\n";
+					<< normalizedName << "\"] = tr(\"" << mDescription << "\");\n";
 		}
 	}
 }
@@ -426,14 +516,14 @@ void GraphicType::generateDescriptionMapping(OutFile &out)
 void GraphicType::generatePropertyDescriptionMapping(utils::OutFile &out)
 {
 	if (mVisible) {
-		QString const diagramName = NameNormalizer::normalize(mDiagram->name());
-		QString const normalizedName = NameNormalizer::normalize(qualifiedName());
-		foreach (Property const *p, mProperties) {
+		const QString diagramName = NameNormalizer::normalize(mDiagram->name());
+		const QString normalizedName = NameNormalizer::normalize(qualifiedName());
+		foreach (const Property *p, mProperties) {
 			if (!p->description().isEmpty()) {
-				QString const propertyName = p->name();
-				QString const propertyDescription = p->description();
+				const QString propertyName = p->name();
+				const QString propertyDescription = p->description();
 				out() << "\tmPropertiesDescriptionMap[\"" << diagramName << "\"][\""
-						<< normalizedName << "\"][\"" << propertyName << "\"] = QString::fromUtf8(\""
+						<< normalizedName << "\"][\"" << propertyName << "\"] = tr(\""
 						<< propertyDescription << "\");\n";
 			}
 		}
@@ -443,14 +533,14 @@ void GraphicType::generatePropertyDescriptionMapping(utils::OutFile &out)
 void GraphicType::generatePropertyDisplayedNamesMapping(utils::OutFile &out)
 {
 	if (mVisible) {
-		QString const diagramName = NameNormalizer::normalize(mDiagram->name());
-		QString const normalizedName = NameNormalizer::normalize(qualifiedName());
-		foreach (Property const *p, mProperties) {
+		const QString diagramName = NameNormalizer::normalize(mDiagram->name());
+		const QString normalizedName = NameNormalizer::normalize(qualifiedName());
+		foreach (const Property *p, mProperties) {
 			if (!p->displayedName().isEmpty()) {
-				QString const propertyName = p->name();
-				QString const propertyDisplayedName = p->displayedName();
+				const QString propertyName = p->name();
+				const QString propertyDisplayedName = p->displayedName();
 				out() << "\tmPropertiesDisplayedNamesMap[\"" << diagramName << "\"][\""
-						<< normalizedName << "\"][\"" << propertyName << "\"] = QString::fromUtf8(\""
+						<< normalizedName << "\"][\"" << propertyName << "\"] = tr(\""
 						<< propertyDisplayedName << "\");\n";
 			}
 		}
@@ -473,7 +563,7 @@ void GraphicType::generateMouseGesturesMap(OutFile &out)
 		if (pathStr.length() > maxLineLength - output.length()) {
 			out() << "\"" << pathStr.left(maxLineLength - output.length());
 			pathStr.remove(0, maxLineLength - output.length());
-			QString const prefix = "\t\t\t\"";
+			const QString prefix = "\t\t\t\"";
 			do {
 				out() << "\"\n" << prefix << pathStr.left(maxLineLength);
 				pathStr.remove(0, maxLineLength);
@@ -577,18 +667,19 @@ void GraphicType::generatePropertyDefaults(OutFile &out)
 		return;
 	}
 
-	QString name = NameNormalizer::normalize(qualifiedName());
-	foreach (Property *property, mProperties) {
+	const QString name = NameNormalizer::normalize(qualifiedName());
+	for (const Property *property : mProperties) {
 		if (!property->defaultValue().isEmpty()) {
-			out() << "\tmPropertyDefault[\"" << name << "\"][\"" << property->name()
-					<< "\"] = QString::fromUtf8(\"" << property->defaultValue() << "\");\n";
+			const QString stringConstructor = property->type() == "string" ? "tr" : "QString::fromUtf8";
+			out() << QString("\tmPropertyDefault[\"%1\"][\"%2\"] = %3(\"%4\");\n").arg(name
+					, property->name(), stringConstructor, property->defaultValue());
 		}
 	}
 }
 
 void GraphicType::generateOneCase(OutFile &out, bool isNotFirst) const
 {
-	QString const name = NameNormalizer::normalize(qualifiedName());
+	const QString name = NameNormalizer::normalize(qualifiedName());
 
 	if (!isNotFirst) {
 		out() << "\tif (element == \"" << name << "\") {\n";
@@ -597,7 +688,7 @@ void GraphicType::generateOneCase(OutFile &out, bool isNotFirst) const
 	}
 }
 
-QString GraphicType::resourceName(QString const &resourceType) const
+QString GraphicType::resourceName(const QString &resourceType) const
 {
 	QString name = NameNormalizer::normalize(qualifiedName());
 	return name + resourceType + ".sdf";
@@ -631,7 +722,7 @@ bool GraphicType::generatePossibleEdges(OutFile &out, bool isNotFirst)
 	return true;
 }
 
-bool GraphicType::generateListForElement(utils::OutFile &out, bool isNotFirst, QStringList const &list) const
+bool GraphicType::generateListForElement(utils::OutFile &out, bool isNotFirst, const QStringList &list) const
 {
 	if (list.isEmpty()) {
 		return false;
@@ -640,7 +731,7 @@ bool GraphicType::generateListForElement(utils::OutFile &out, bool isNotFirst, Q
 	generateOneCase(out, isNotFirst);
 
 	out() << "\t\tresult ";
-	foreach (QString const &element, list) {
+	foreach (const QString &element, list) {
 		out() << "<< \"" << element << "\" ";
 	}
 
@@ -654,19 +745,20 @@ void GraphicType::generateParentsMapping(utils::OutFile &out)
 		return;
 	}
 
-	QString const diagramName = NameNormalizer::normalize(mDiagram->name());
-	QString const normalizedName = NameNormalizer::normalize(qualifiedName());
+	const QString diagramName = NameNormalizer::normalize(mDiagram->name());
+	const QString normalizedName = NameNormalizer::normalize(qualifiedName());
 	out() << "\tmParentsMap[\"" << diagramName << "\"][\"" << normalizedName << "\"]\n";
-	foreach (QString const &parent, mParents) {
+	for (const GeneralizationProperties &parent : mParents) {
 		out() << "\t\t<< qMakePair(QString(\"" << diagramName << "\"), QString(\""
-				<< NameNormalizer::normalize(parent) << "\"))\n";
+				<< NameNormalizer::normalize(parent.name) << "\"))\n";
 	}
+
 	out() << "\t;\n";
 }
 
-QVector<int> GraphicType::toIntVector(QString const &s, bool *isOk) const
+QVector<int> GraphicType::toIntVector(const QString &s, bool *isOk) const
 {
-	QStringList const strings = s.split(',');
+	const QStringList strings = s.split(',');
 	QVector<int> result(4, 0);
 
 	if (strings.size() != 4) {
@@ -689,11 +781,11 @@ void GraphicType::generateExplosionsMap(OutFile &out)
 		return;
 	}
 
-	QString const diagramName = NameNormalizer::normalize(mDiagram->name());
-	QString const normalizedName = NameNormalizer::normalize(qualifiedName());
-	foreach (QString const &target, mExplosions.keys()) {
-		bool const reusable = mExplosions[target].first;
-		bool const immediateLinkage = mExplosions[target].second;
+	const QString diagramName = NameNormalizer::normalize(mDiagram->name());
+	const QString normalizedName = NameNormalizer::normalize(qualifiedName());
+	foreach (const QString &target, mExplosions.keys()) {
+		const bool reusable = mExplosions[target].first;
+		const bool immediateLinkage = mExplosions[target].second;
 
 		out() << "\tmExplosionsMap[\"" << diagramName << "\"][\"" << normalizedName << "\"]";
 		out() << QString(" << ExplosionData(\"%1\", \"%2\", %3, %4);\n").arg(diagramName

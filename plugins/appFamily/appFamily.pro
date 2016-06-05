@@ -30,10 +30,40 @@ DESTDIR = $$DESTDIR/plugins/tools/
 links(qrkernel qrutils qrmc)
 
 HEADERS += \
-	cshgenerator.h \
+    cshgenerator.h
+
 
 SOURCES += \
-	cshgenerator.cpp \
+    cshgenerator.cpp
+	#javagenerator.cpp
+
 
 #FORMS += \
 #	compilerPage.ui \
+
+DISTFILES += \
+    GamePage.xaml.template \
+	Mediator.cs.template \
+	Editor.java.template \
+    Editor/copy.JPG \
+    Editor/cut.JPG \
+    Editor/new.JPG \
+    Editor/open.JPG \
+    Editor/paste.JPG \
+    Editor/save.JPG \
+    Editor/fontSelector.java \
+    Joystick/StoreManifest.xml \
+    Joystick/AccelerometerPage.xaml \
+    Joystick/App.xaml \
+    Joystick/GamepadSemester.csproj \
+    Joystick/GamepadSemester.csproj.user \
+    Joystick/Package.appxmanifest \
+    Joystick/SettingsPage.xaml \
+    Joystick/AccelerometerPage.xaml.cs \
+    Joystick/App.xaml.cs \
+    Joystick/Exceptions.cs \
+    Joystick/GamepadPage.xaml.cs \
+    Joystick/RecordMaker.cs \
+    Joystick/SettingsPage.xaml.cs \
+    Joystick/SocketClient.cs
+

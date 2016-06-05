@@ -1,3 +1,17 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QPointF>
@@ -31,10 +45,6 @@ void SerializerTest::removeDirectory(QString const &dirName)
 
 void SerializerTest::SetUp()
 {
-	mOldTempFolder = SettingsManager::value("temp").toString();
-	mNewTempFolder = QDir::currentPath() + "/unsaved";
-	SettingsManager::setValue("temp", mNewTempFolder);
-
 	mSerializer = new Serializer("saveFile");
 }
 
@@ -44,18 +54,19 @@ void SerializerTest::TearDown()
 	delete mSerializer;
 
 	QFile::remove("saveFile.qrs");
-	QDir().rmdir(mNewTempFolder);
-
-	SettingsManager::setValue("temp", mOldTempFolder);
 }
 
 TEST_F(SerializerTest, saveAndLoadFromDiskTest)
 {
-	Id const id1("editor1", "diagram1", "element1", "id1");
+	QHash<QString, QVariant> metaInfo;
+	metaInfo["key1"] = "info1";
+	metaInfo["key2"] = 2;
+
+	const Id id1("editor1", "diagram1", "element1", "id1");
 	LogicalObject obj1(id1);
 	obj1.setProperty("property1", "value1");
 
-	Id const id2("editor1", "diagram2", "element2", "id2");
+	const Id id2("editor1", "diagram2", "element2", "id2");
 	LogicalObject obj2(id2);
 	obj2.setProperty("property2", "value2");
 
@@ -63,11 +74,11 @@ TEST_F(SerializerTest, saveAndLoadFromDiskTest)
 	list.push_back(&obj1);
 	list.push_back(&obj2);
 
-	mSerializer->saveToDisk(list);
+	mSerializer->saveToDisk(list, metaInfo);
 
 	QHash<Id, Object *> map;
 	mSerializer->setWorkingFile("saveFile.qrs");
-	mSerializer->loadFromDisk(map);
+	mSerializer->loadFromDisk(map, metaInfo);
 
 	ASSERT_TRUE(map.contains(id1));
 	ASSERT_TRUE(map.contains(id2));
@@ -77,17 +88,21 @@ TEST_F(SerializerTest, saveAndLoadFromDiskTest)
 
 	EXPECT_EQ(map.value(id1)->property("property1").toString(), "value1");
 	EXPECT_EQ(map.value(id2)->property("property2").toString(), "value2");
+
+	ASSERT_TRUE(metaInfo.keys().count() == 2);
+	ASSERT_EQ(metaInfo["key1"], "info1");
+	ASSERT_EQ(metaInfo["key2"], 2);
 }
 
 // Decomment EXPECT_FALSE and delete EXPECT_TRUE(true) when removeFromDisk will be fixed. pathToElement(id) returns
 // path without parent folder /tree and /logical or /graphical according to id type.
 TEST_F(SerializerTest, removeFromDiskTest)
 {
-	Id const id1("editor1", "diagram1", "element1", "id1");
+	const Id id1("editor1", "diagram1", "element1", "id1");
 	LogicalObject obj1(id1);
 	obj1.setProperty("property1", "value1");
 
-	Id const id2("editor1", "diagram2", "element2", "id2");
+	const Id id2("editor1", "diagram2", "element2", "id2");
 	LogicalObject obj2(id2);
 	obj2.setProperty("property2", "value2");
 
@@ -95,7 +110,7 @@ TEST_F(SerializerTest, removeFromDiskTest)
 	list.push_back(&obj1);
 	list.push_back(&obj2);
 
-	mSerializer->saveToDisk(list);
+	mSerializer->saveToDisk(list, QHash<QString, QVariant>());
 	mSerializer->decompressFile("saveFile.qrs");
 	mSerializer->removeFromDisk(id2);
 
@@ -106,10 +121,10 @@ TEST_F(SerializerTest, removeFromDiskTest)
 
 TEST_F(SerializerTest, saveAndLoadGraphicalPartsTest)
 {
-	Id const element("editor", "diagram", "element", "id");
+	const Id element("editor", "diagram", "element", "id");
 	LogicalObject logicalObj(element);
 
-	Id const graphicalElement("editor", "diagram", "element", "graphicalId");
+	const Id graphicalElement("editor", "diagram", "element", "graphicalId");
 
 	GraphicalObject graphicalObj(graphicalElement, Id(), element);
 
@@ -120,11 +135,12 @@ TEST_F(SerializerTest, saveAndLoadGraphicalPartsTest)
 	list.push_back(&graphicalObj);
 	list.push_back(&logicalObj);
 
-	mSerializer->saveToDisk(list);
+	mSerializer->saveToDisk(list, QHash<QString, QVariant>());
 
 	QHash<Id, Object *> map;
+	QHash<QString, QVariant> metaInfo;
 	mSerializer->setWorkingFile("saveFile.qrs");
-	mSerializer->loadFromDisk(map);
+	mSerializer->loadFromDisk(map, metaInfo);
 
 	ASSERT_TRUE(map.contains(graphicalElement));
 

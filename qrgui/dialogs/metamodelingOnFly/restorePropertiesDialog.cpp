@@ -1,13 +1,27 @@
+/* Copyright 2007-2015 QReal Research Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
+
 #include "restorePropertiesDialog.h"
 #include "ui_restorePropertiesDialog.h"
 
 using namespace qReal;
 
 RestorePropertiesDialog::RestorePropertiesDialog(QWidget *parent
-		, EditorManagerInterface const &interperterEditorManager)
+		, const EditorManagerInterface &interpreterEditorManager)
 	: QDialog(parent)
 	, mUi(new Ui::RestorePropertiesDialog)
-	, mInterperterEditorManager(interperterEditorManager)
+	, mInterpreterEditorManager(interpreterEditorManager)
 {
 	mUi->setupUi(this);
 	mUi->sameNamePropertiesTW->insertColumn(0);
@@ -18,11 +32,8 @@ RestorePropertiesDialog::RestorePropertiesDialog(QWidget *parent
 	mUi->sameNamePropertiesTW->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Type")));
 	mUi->sameNamePropertiesTW->insertColumn(3);
 	mUi->sameNamePropertiesTW->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Default value")));
-	//mUi->sameNamePropertiesTW->resizeColumnsToContents();
-	//mUi->sameNamePropertiesTW->horizontalHeader()->setSectionResizeMode(ResizeToContents);
 	mUi->sameNamePropertiesTW->adjustSize();
 	this->setMinimumSize(mUi->sameNamePropertiesTW->size());
-	//this->resize(mUi->sameNamePropertiesTW->size());
 	mUi->sameNamePropertiesTW->horizontalHeader()->setStretchLastSection(true);
 	connect(mUi->restoreButton, &QPushButton::clicked, this, &RestorePropertiesDialog::restoreButtonClicked);
 	connect(mUi->createNewButton, &QPushButton::clicked, this, &RestorePropertiesDialog::createButtonClicked);
@@ -33,13 +44,13 @@ RestorePropertiesDialog::~RestorePropertiesDialog()
 	delete mUi;
 }
 
-void RestorePropertiesDialog::fillSameNamePropertiesTW(IdList const &propertiesWithTheSameNameList
-		, QString const &propertyName)
+void RestorePropertiesDialog::fillSameNamePropertiesTW(const IdList &propertiesWithTheSameNameList
+		, const QString &propertyName)
 {
 	mPropertiesWithTheSameNameList = propertiesWithTheSameNameList;
 	for (int i = 0; i < mPropertiesWithTheSameNameList.count(); i++) {
 		mUi->sameNamePropertiesTW->insertRow(i);
-		QStringList propertyParams = mInterperterEditorManager.getSameNamePropertyParams(
+		QStringList propertyParams = mInterpreterEditorManager.getSameNamePropertyParams(
 				mPropertiesWithTheSameNameList[i], propertyName);
 		for (int j = 0; j < propertyParams.count(); j++) {
 			mUi->sameNamePropertiesTW->setItem(i, j, new QTableWidgetItem(propertyParams[j]));
@@ -54,11 +65,11 @@ void RestorePropertiesDialog::restoreButtonClicked()
 		QString state = mUi->sameNamePropertiesTW->item(firstSelectedRow, 1)->text();
 		QString propertyPreviousName = mUi->sameNamePropertiesTW->item(firstSelectedRow, 0)->text();
 		if (state == tr("Deleted")) {
-			mInterperterEditorManager.restoreRemovedProperty(mPropertiesWithTheSameNameList[firstSelectedRow]
+			mInterpreterEditorManager.restoreRemovedProperty(mPropertiesWithTheSameNameList[firstSelectedRow]
 					, propertyPreviousName);
 		} else if (state != tr("Existed")) {
 			// Restore renamed property
-			mInterperterEditorManager.restoreRenamedProperty(mPropertiesWithTheSameNameList[firstSelectedRow]
+			mInterpreterEditorManager.restoreRenamedProperty(mPropertiesWithTheSameNameList[firstSelectedRow]
 					, propertyPreviousName);
 		}
 		done(QDialog::Accepted);

@@ -1,1 +1,0 @@
-ecrobot_set_light_sensor_inactive(@@PORT@@);
